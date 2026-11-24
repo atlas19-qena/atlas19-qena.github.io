@@ -142,23 +142,32 @@ function home(){
 function loginView(){
  var nm=h('input',{class:'atl-in',type:'text',placeholder:'الاسم',autocomplete:'off',maxlength:'30'});
  var pn=h('input',{class:'atl-in',type:'password',inputmode:'numeric',placeholder:'PIN (4 أرقام على الأقل)',autocomplete:'off',maxlength:'12'});
+ var mode='in',goBtn=null;
+ var chIn=h('button',{type:'button',class:'atl-chip','aria-pressed':'true'},['دخول']),chUp=h('button',{type:'button',class:'atl-chip','aria-pressed':'false'},['حساب جديد']);
+ function setMode(m){mode=m;chIn.setAttribute('aria-pressed',String(m==='in'));chUp.setAttribute('aria-pressed',String(m==='up'));if(goBtn)goBtn.textContent=m==='in'?'دخول':'إنشاء الحساب';msg.style.display='none'}
+ chIn.addEventListener('click',function(){setMode('in')});chUp.addEventListener('click',function(){setMode('up')});
  var msg=h('div',{class:'atl-note warn',style:'display:none'});
  function say(t){msg.textContent=t;msg.style.display='block'}
  var ta=h('textarea',{class:'atl-in',rows:'3',placeholder:'الصق كود النقل هنا'});
  var w=h('div',{class:'atl-wrap',style:'padding-top:16px'},[
   h('h2',{},['ادخل باسمك']),
-  h('p',{class:'atl-sm'},['اكتب اسمك وPIN. لو الاسم جديد هيتعمل حساب ليك، ولو موجود هيفتح بنفس الـPIN، وتقدمك بيظهر على أي جهاز تدخل منه. الـPIN أرقام بس، فاختار رقم مش سهل (6 أرقام أحسن).']),
-  nm,pn,msg,
-  h('button',{type:'button',class:'atl-btn p',style:'width:100%;margin-top:8px',onclick:function(){
+  h('p',{class:'atl-sm'},['اكتب اسمك وPIN. لو عندك حساب اختار "دخول"، ولو أول مرة اختار "حساب جديد" (الاسم مينفعش يتكرر)، وتقدمك بيظهر على أي جهاز تدخل منه. الـPIN أرقام بس، فاختار رقم مش سهل (6 أرقام أحسن).']),
+  h('div',{class:'atl-chips'},[chIn,chUp]),nm,pn,msg,
+  (goBtn=h('button',{type:'button',class:'atl-btn p',style:'width:100%;margin-top:8px',onclick:function(){
    var n=nm.value.trim(),p=pn.value.trim();
    if(!n){say('اكتب الاسم');return}
    if(!/^[0-9]{4,12}$/.test(p)){say('الـPIN لازم يكون أرقام فقط، 4 على الأقل');return}
-   var k=pkey(n),btn=this;btn.disabled=true;say('جاري الدخول...');
+   var k=pkey(n),btn=this,SU=mode==='up';btn.disabled=true;say(SU?'جاري التحقق...':'جاري الدخول...');
    function done(){btn.disabled=false}
    derive(k,p).then(function(dh){
-    return rpc('atlas_login',{p_name:n,p_pin:dh,p_create:true}).then(function(r){
+    return rpc('atlas_login',{p_name:n,p_pin:dh,p_create:false}).then(function(r0){
+     if(SU&&r0.status==='none')return rpc('atlas_login',{p_name:n,p_pin:dh,p_create:true}).then(function(r2){return r2.status==='created'?r2:(r2.status==='ok'||r2.status==='bad'||r2.status==='locked'?{status:'taken'}:r2)});
+     if(SU)return r0.status==='none'?r0:{status:'taken'};
+     return r0}).then(function(r){
      if(r.status==='ok'||r.status==='created'){var o=profs(),old=o[k],dirty=r.status==='created'||!!(old&&(old.dirty||!old.dh));
       o[k]={name:r.name||n,dh:dh,dirty:dirty};lsset('atlas.profiles',JSON.stringify(o));CUR=k;applyRemote(r.data,dirty);setCur(k);ISADM=!!r.admin;if(dirty)pushNow();go('home')}
+     else if(r.status==='taken'){say('الاسم ده مستخدم قبل كده. اختار اسم تاني (زوّد اسمك التاني أو رقم). لو ده حسابك اختار "دخول".');done()}
+     else if(r.status==='none'){say('الاسم ده مش مسجل. لو أول مرة اختار "حساب جديد".');done()}
      else if(r.status==='bad'){say('الـPIN غلط للاسم ده');done()}
      else if(r.status==='locked'){say('الحساب مقفول مؤقتاً بعد محاولات غلط كتير. جرّب بعد 10 دقايق.');done()}
      else{say('الاسم أو الـPIN مش مقبول');done()}
@@ -167,7 +176,7 @@ function loginView(){
     var o=profs(),pr=o[k];
     if(pr&&pr.dh&&e&&e.message!=='nocrypto'){derive(k,p).then(function(dh){if(dh===pr.dh){CUR=k;setCur(k);go('home')}else{say('الـPIN غلط للاسم ده');done()}})}
     else{say('مفيش اتصال بالإنترنت. اتصل وجرّب تاني.');done()}
-   })}},['دخول']),
+   })}},['دخول'])),
   h('div',{class:'atl-note warn',style:'margin-top:10px'},['⚠️ الاسم والـPIN مهمين جدًا لحفظ تقدمك. احفظهم، ولو نسيتهم مش هتقدر ترجع لتقدمك.']),
   h('h2',{style:'margin-top:22px'},['عندك كود نقل من جهاز تاني؟']),ta,
   h('button',{type:'button',class:'atl-btn',style:'width:100%;margin-top:8px',onclick:function(){try{importCode(ta.value);go('home')}catch(e){say('الكود مش صحيح')}}},['استيراد'])]);
