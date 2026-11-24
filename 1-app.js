@@ -30,7 +30,7 @@ var SUBJECTS=[
 ];
 var app=document.getElementById('app');
 var store={};
-var CUR='';try{CUR=localStorage.getItem('atlas.cur')||''}catch(e){}
+var CUR='';try{CUR=localStorage.getItem('atlas.cur')||'';if(CUR==='~guest')CUR=''}catch(e){}
 function lsget(k){try{return localStorage.getItem(k)}catch(e){return store['k:'+k]||null}}
 function lsset(k,v){store['k:'+k]=v;try{localStorage.setItem(k,v)}catch(e){}}
 function profs(){try{return JSON.parse(lsget('atlas.profiles')||'{}')}catch(e){return {}}}
@@ -151,7 +151,7 @@ function loginView(){
     if(pr&&pr.dh&&e&&e.message!=='nocrypto'){derive(k,p).then(function(dh){if(dh===pr.dh){CUR=k;setCur(k);go('home')}else{say('الـPIN غلط للاسم ده');done()}})}
     else{say('مفيش اتصال بالإنترنت. اتصل وجرّب تاني.');done()}
    })}},['دخول']),
-  h('button',{type:'button',class:'atl-btn',style:'width:100%;margin-top:8px',onclick:function(){setCur('~guest');go('home')}},['كمل بدون اسم (ضيف)']),
+  h('div',{class:'atl-note warn',style:'margin-top:10px'},['⚠️ الاسم والـPIN مهمين جدًا لحفظ تقدمك. احفظهم، ولو نسيتهم مش هتقدر ترجع لتقدمك.']),
   h('h2',{style:'margin-top:22px'},['عندك كود نقل من جهاز تاني؟']),ta,
   h('button',{type:'button',class:'atl-btn',style:'width:100%;margin-top:8px',onclick:function(){try{importCode(ta.value);go('home')}catch(e){say('الكود مش صحيح')}}},['استيراد'])]);
  var d=h('div');d.appendChild(h('div',{class:'atl-hero'},[brandEl(),h('p',{},['مراجعة العملي'])]));d.appendChild(w);return d}
