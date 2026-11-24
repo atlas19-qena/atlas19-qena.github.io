@@ -93,4 +93,21 @@ html,body{margin:0}
 .atl-fx{position:absolute;inset-inline-end:10px;top:50%;margin-top:-16px;font-size:26px;line-height:1;pointer-events:none;z-index:5;animation:atlFloat .9s ease-out forwards}
 @keyframes atlFloat{0%{opacity:0;transform:translateY(0) scale(.5)}20%{opacity:1;transform:translateY(-8px) scale(1.2)}100%{opacity:0;transform:translateY(-46px) scale(1)}}
 .atl-pn{position:sticky;bottom:0;z-index:4;padding:8px 0 calc(8px + env(safe-area-inset-bottom));background:linear-gradient(rgba(246,244,238,0),#f6f4ee 30%)}
+
+/* ===== motion: view + section transitions ===== */
+.atl{animation:atlBoot .3s ease both}
+@keyframes atlBoot{from{opacity:0}}
+.atl-vt{overflow-x:hidden}
+.atl-out-f{animation:atlOutF .14s ease-in both}
+.atl-out-b{animation:atlOutB .14s ease-in both}
+.atl-in-f{animation:atlInF .34s cubic-bezier(.22,.61,.36,1) both}
+.atl-in-b{animation:atlInB .34s cubic-bezier(.22,.61,.36,1) both}
+@keyframes atlOutF{to{opacity:0;transform:translateX(26px)}}
+@keyframes atlOutB{to{opacity:0;transform:translateX(-26px)}}
+@keyframes atlInF{from{opacity:0;transform:translateX(-30px)}}
+@keyframes atlInB{from{opacity:0;transform:translateX(30px)}}
+.atl-cin{animation:atlCardIn .4s cubic-bezier(.22,.61,.36,1) both}
+@keyframes atlCardIn{from{opacity:0;transform:translateY(14px) scale(.98)}}
+.atl-qin{animation:atlQIn .28s ease both}
+@keyframes atlQIn{from{opacity:0;transform:translateY(8px)}}
 @media (prefers-reduced-motion:reduce){.atl *{animation:none!important;transition:none!important}}
