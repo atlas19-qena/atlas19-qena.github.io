@@ -119,3 +119,5 @@ html,body{margin:0}
 .atl-back:active{transform:scale(.92);box-shadow:0 0 0 2px #c9a46a,0 1px 3px rgba(20,40,75,.3)}
 .atl-back:focus-visible{outline:3px solid #c9a46a;outline-offset:3px}
 @media (prefers-reduced-motion:reduce){.atl-back,.atl-back::before{transition:none!important}.atl-back:active{transform:none}}
+/* back arrow: hide text glyph, chevron only */
+.atl-back{color:transparent!important;text-indent:-9999px;overflow:hidden;text-shadow:none}
