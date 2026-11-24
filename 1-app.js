@@ -245,7 +245,7 @@ function pcqView(){
    card.appendChild(row)}
   w.appendChild(card);
   w.appendChild(h('div',{class:'atl-nav atl-pn'},[h('button',{type:'button',class:'atl-btn',disabled:idx===0?'':false,onclick:function(){window.__qin=true;window.__qd='p';state.pos=idx-1;window.__qin=true;render();qTop()}},['← Previous']),h('button',{type:'button',class:'atl-btn p',disabled:idx>=list.length-1?'':false,onclick:function(){window.__qin=true;window.__qd='n';state.pos=idx+1;window.__qin=true;render();qTop()}},['Next →'])]))}
- w.appendChild(h('div',{class:'atl-nav'},[h('button',{type:'button',class:'atl-btn',onclick:function(){if(confirm('تمسح كل إجاباتك في الجزء ده؟')){save('pcq',{});state.pos=0;state.wrong=false;render()}}},['ابدأ من الأول (يمسح إجاباتك)'])]));
+ w.appendChild(h('div',{class:'atl-nav'},[h('button',{type:'button',class:'atl-btn',onclick:function(){askYes('تمسح كل إجاباتك في الجزء ده؟',function(){save('pcq',{});state.pos=0;state.wrong=false;render()})}},['ابدأ من الأول (يمسح إجاباتك)'])]));
  var d=h('div');d.appendChild(top('Para Practical Complete',done+' / '+PCQ.length+' answered · '+right+' right',function(){go('sub:para')}));d.appendChild(w);return d}
 function inp0(a){a[0]&&a[0].focus()}
 function pages(id){var g,s;SUBJECTS.forEach(function(x){x.pages.forEach(function(y){if(y.id===id){g=y;s=x}})});
@@ -254,6 +254,22 @@ function pages(id){var g,s;SUBJECTS.forEach(function(x){x.pages.forEach(function
  var d=h('div');d.appendChild(top(g.title,g.pages.length+' pages · '+g.note,function(){go('sub:'+s.id)}));d.appendChild(w);return d}
 
 var RQ=null;
+function askYes(msg,yes){var ov=document.createElement('div');ov.className='atl-ov';ov.setAttribute('role','dialog');ov.setAttribute('aria-modal','true');
+ var bx=document.createElement('div');bx.className='atl-dlg';
+ var t=document.createElement('div');t.className='atl-dt';t.textContent='تأكيد';
+ var m=document.createElement('div');m.className='atl-dm';m.textContent=msg;
+ var row=document.createElement('div');row.className='atl-dr';
+ var no=document.createElement('button');no.type='button';no.className='atl-btn';no.textContent='لا';
+ var ok=document.createElement('button');ok.type='button';ok.className='atl-btn p';ok.textContent='نعم، امسح';
+ function close(cb){document.removeEventListener('keydown',kd);ov.classList.add('out');setTimeout(function(){if(ov.parentNode)ov.parentNode.removeChild(ov);if(cb)cb()},150)}
+ function kd(e){if(e.key==='Escape')close()}
+ no.onclick=function(){close()};ok.onclick=function(){close(yes)};ov.onclick=function(e){if(e.target===ov)close()};
+ row.appendChild(ok);row.appendChild(no);bx.appendChild(t);bx.appendChild(m);bx.appendChild(row);ov.appendChild(bx);document.body.appendChild(ov);document.addEventListener('keydown',kd);setTimeout(function(){no.focus()},30)}
+/* smooth slide-out before Next/Previous */
+(function(){var busy=false;app.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('.atl-pn .atl-btn');if(!b||b.disabled)return;if(b.__go){b.__go=false;busy=false;return}
+ var q=app.querySelector('.atl-q');if(RM.matches||!q||busy)return;var bt=b.parentNode.querySelectorAll('.atl-btn'),nx=bt[1]===b;
+ e.stopPropagation();e.preventDefault();busy=true;q.classList.add(nx?'atl-qon':'atl-qop');setTimeout(function(){b.__go=true;b.click();setTimeout(function(){busy=false},60)},150)},true)})();
+
 function qTop(){var q=app.querySelector('.atl-q');if(!q)return;var r=q.getBoundingClientRect().top;if(r<76)window.scrollTo(0,Math.max(0,(window.scrollY||0)+r-76))}
 function shuf(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
 function buildRnd(){var ks=Object.keys(SETS),N=30,per=Math.floor(N/ks.length),pool={},out=[],rest=[];
@@ -312,7 +328,7 @@ function quiz(set){var p=load(set.id),s=null;SUBJECTS.forEach(function(x){if(x.q
 
   w.appendChild(card);
   w.appendChild(h('div',{class:'atl-nav atl-pn'},[h('button',{type:'button',class:'atl-btn',disabled:idx===0?'':false,onclick:function(){window.__qin=true;window.__qd='p';state.pos=idx-1;window.__qin=true;render();qTop()}},['← Previous']),h('button',{type:'button',class:'atl-btn p',disabled:idx>=list.length-1?'':false,onclick:function(){window.__qin=true;window.__qd='n';state.pos=idx+1;window.__qin=true;render();qTop()}},['Next →'])]))}
- w.appendChild(h('div',{class:'atl-nav'},[h('button',{type:'button',class:'atl-btn',onclick:function(){if(confirm('تمسح كل اختياراتك في الأسئلة دي؟')){save(set.id,{});state.pos=0;state.wrong=false;render()}}},['ابدأ من الأول (يمسح اختياراتك)'])]));
+ w.appendChild(h('div',{class:'atl-nav'},[h('button',{type:'button',class:'atl-btn',onclick:function(){askYes('تمسح كل اختياراتك في الأسئلة دي؟',function(){save(set.id,{});state.pos=0;state.wrong=false;render()})}},['ابدأ من الأول (يمسح اختياراتك)'])]));
  var d=h('div');d.appendChild(top(set.title,answered+' / '+set.items.length+' answered'+(set.key?' · '+correct+' correct':''),function(){go('sub:'+s.id)}));d.appendChild(w);return d}
 render();bgPull();
 /* swipe: left = next, right = previous (nav is ltr) */
