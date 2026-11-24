@@ -96,6 +96,7 @@ function renderCore(){app.innerHTML='';var v=state.view;
  else if(v==='admin')app.appendChild(adminView());
  else if(v==='mist'||v.indexOf('mist:')===0)app.appendChild(mistView(v.slice(5)));
  else if(v==='pcq')app.appendChild(pcqView());
+ else if(v==='rnd')app.appendChild(rndView());
 
  else if(v.indexOf('quiz:')===0)app.appendChild(quiz(SETS[v.slice(5)]));
  else if(v.indexOf('pg:')===0)app.appendChild(pages(v.slice(3)));
@@ -110,6 +111,7 @@ function home(){
  var wrap=h('div',{class:'atl-wrap'},[
   h('div',{class:'atl-stats'},[h('div',{class:'atl-stat'},[h('b',{},[ready+' / '+SUBJECTS.length]),h('span',{},['مواد جاهزة'])]),h('div',{class:'atl-stat'},[h('b',{},[String(total)]),h('span',{},['سؤال عملي'])])]),
   h('h2',{},['المواد'])]);
+ wrap.insertBefore(h('button',{type:'button',class:'atl-card',onclick:function(){RQ=buildRnd();go('rnd')}},[ico('30'),h('span',{style:'flex:1'},[h('div',{class:'t'},['اختبار عشوائي']),h('div',{class:'s'},['30 سؤال متنوع من كل المواد'])])]),wrap.children[1]);
  SUBJECTS.forEach(function(s){
   if(s.soon){wrap.appendChild(h('div',{class:'atl-card',style:'opacity:.6'},[ico(s.name.slice(0,3)),h('span',{class:'t'},[s.name]),h('span',{class:'atl-tag warn'},['Soon'])]));return}
   var q=s.quizzes.reduce(function(a,k){return a+SETS[k].items.length},0);
@@ -250,6 +252,39 @@ function pages(id){var g,s;SUBJECTS.forEach(function(x){x.pages.forEach(function
  var w=h('div',{class:'atl-wrap',style:'padding-top:14px'});
  g.pages.forEach(function(src,i){w.appendChild(h('div',{class:'atl-pgl'},['Page '+(i+1)+' of '+g.pages.length]));w.appendChild(h('img',{class:'atl-pg',loading:'lazy',src:src,alt:g.title+', page '+(i+1)}))});
  var d=h('div');d.appendChild(top(g.title,g.pages.length+' pages · '+g.note,function(){go('sub:'+s.id)}));d.appendChild(w);return d}
+
+var RQ=null;
+function shuf(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
+function buildRnd(){var ks=Object.keys(SETS),N=30,per=Math.floor(N/ks.length),pool={},out=[],rest=[];
+ ks.forEach(function(k){pool[k]=shuf(SETS[k].items.filter(function(x){return x.a&&x.o&&x.o.length}))});
+ ks.forEach(function(k){pool[k].splice(0,per).forEach(function(it){out.push({k:k,it:it,pick:null})})});
+ ks.forEach(function(k){pool[k].forEach(function(it){rest.push({k:k,it:it,pick:null})})});
+ rest=shuf(rest);while(out.length<N&&rest.length)out.push(rest.shift());
+ return {list:shuf(out),i:0,done:false}}
+function rndView(){if(!RQ)RQ=buildRnd();var R=RQ,w=h('div',{class:'atl-wrap'}),d=h('div');
+ var ans=R.list.filter(function(x){return x.pick}).length,cor=R.list.filter(function(x){return x.pick&&x.pick===x.it.a}).length;
+ function nm(x){var sj=subjOfSet(x.k);return sj?sj.name:x.k}
+ if(R.done){var pc=Math.round(cor*100/R.list.length);
+  w.appendChild(h('div',{class:'atl-stats'},[h('div',{class:'atl-stat'},[h('b',{},[cor+' / '+R.list.length]),h('span',{},['الدرجة'])]),h('div',{class:'atl-stat'},[h('b',{},[pc+'%']),h('span',{},['النسبة'])])]));
+  var wr=R.list.filter(function(x){return x.pick!==x.it.a});
+  if(wr.length){w.appendChild(h('h2',{},['الأسئلة اللي غلطت فيها أو سبتها']));
+   wr.forEach(function(x){var i=R.list.indexOf(x);w.appendChild(h('button',{type:'button',class:'atl-card',onclick:function(){R.done=false;R.i=i;window.__qin=true;render();window.scrollTo(0,0)}},[ico(nm(x).slice(0,3)),h('span',{style:'flex:1'},[h('div',{class:'t'},['سؤال '+(i+1)]),h('div',{class:'s'},[x.pick?'اخترت '+x.pick+' والصح '+x.it.a:'من غير إجابة، والصح '+x.it.a])])]))})}
+  else w.appendChild(h('div',{class:'atl-note ok'},['ممتاز! كل إجاباتك صح.']));
+  w.appendChild(h('div',{class:'atl-nav'},[h('button',{type:'button',class:'atl-btn p',onclick:function(){RQ=buildRnd();window.__qin=true;render();window.scrollTo(0,0)}},['اختبار عشوائي جديد'])]));
+  d.appendChild(top('نتيجة الاختبار العشوائي',ans+' / '+R.list.length+' answered',function(){go('home')}));d.appendChild(w);return d}
+ var g=h('div',{class:'atl-grid'});
+ R.list.forEach(function(x,i){var cls='atl-g'+(i===R.i?' cur':'')+(x.pick?(x.pick===x.it.a?' ok':' bad'):'');g.appendChild(h('button',{type:'button',class:cls,onclick:function(){R.i=i;window.__qin=true;render()}},[String(i+1)]))});
+ w.appendChild(g);
+ var x=R.list[R.i],it=x.it,set=SETS[x.k];
+ var card=h('div',{class:'atl-q'},[h('div',{class:'atl-qm'},[h('span',{},['Question '+(R.i+1)+' of '+R.list.length]),h('span',{},['· '+nm(x)])]),
+  set.images?h('img',{class:'atl-qi',src:set.images[it.n-1],alt:'Image for question'}):null,h('p',{class:'atl-qt'},[it.q])]);
+ it.o.forEach(function(o,i){var l=L[i],cls='atl-o';if(x.pick){if(l===it.a)cls+=' ok';else if(l===x.pick)cls+=' bad'}
+  card.appendChild(h('button',{type:'button',class:cls,onclick:function(){if(x.pick)return;x.pick=l;setFx(l===it.a);render()}},[h('span',{class:'l'},[l]),h('span',{},[o])]))});
+ if(x.pick)card.appendChild(x.pick===it.a?h('div',{class:'atl-note ok'},['إجابة صحيحة ('+it.a+')']):h('div',{class:'atl-note bad'},['غلط. الإجابة الصحيحة: '+it.a]));
+ w.appendChild(card);
+ var last=R.i>=R.list.length-1;
+ w.appendChild(h('div',{class:'atl-nav atl-pn'},[h('button',{type:'button',class:'atl-btn',disabled:R.i===0?'':false,onclick:function(){R.i--;window.__qin=true;render();window.scrollTo(0,0)}},['← Previous']),h('button',{type:'button',class:'atl-btn p',onclick:function(){if(last){R.done=true}else R.i++;window.__qin=true;render();window.scrollTo(0,0)}},[last?'Finish ✓':'Next →'])]));
+ d.appendChild(top('اختبار عشوائي',ans+' / '+R.list.length+' answered · '+cor+' correct',function(){go('home')}));d.appendChild(w);return d}
 function quiz(set){var p=load(set.id),s=null;SUBJECTS.forEach(function(x){if(x.quizzes.indexOf(set.id)>=0)s=x});
  var secs=[];set.items.forEach(function(i){if(i.s&&secs.indexOf(i.s)<0)secs.push(i.s)});
  function wrong(q){return set.key&&p[q.n]&&p[q.n]!==q.a}
