@@ -240,3 +240,5 @@ html,body{-webkit-text-size-adjust:100%}
  .atl-tm{font-size:13px;padding:5px 8px}
 }
 @media (hover:none){.atl-card:hover{border-color:var(--line)}}
+/* result screen: stats must not slide under the sticky header */
+.atl-stats.atl-stats3{margin:16px 0 18px}
