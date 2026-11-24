@@ -1,0 +1,68 @@
+html, body, #root { margin: 0; min-height: 100%; }
+body { background: #fdf3f4; }
+.atl { --r: #c8102e; --r2: #8f0a20; --pink: #fde8ea; --line: #f3d3d7; --ink: #2a1a1d; --mut: #7a6468; direction: rtl; font-family: system-ui, -apple-system, "Segoe UI", Tahoma, sans-serif; color: var(--ink); background: linear-gradient(#fff4f5, #fdecee 60%, #fff); min-height: 100vh; padding-bottom: 40px; }
+.atl * { box-sizing: border-box; }
+.atl button { font: inherit; cursor: pointer; }
+.atl-hero { position: relative; background: linear-gradient(135deg, #d91b3a, #a50d27); color: #fff; padding: 26px 20px 30px; overflow: hidden; }
+.atl-hero svg.pulse { position: absolute; inset-inline: 0; bottom: 8px; width: 100%; height: 40px; opacity: .35; }
+.atl-brand { display: flex; align-items: center; gap: 10px; direction: ltr; }
+.atl-brand b { font-size: 34px; letter-spacing: .5px; }
+.atl-drop { width: 34px; height: 34px; }
+.atl-hero p { margin: 6px 0 0; font-size: 14px; opacity: .92; }
+.atl-wrap { max-width: 760px; margin: 0 auto; padding: 0 16px; }
+.atl-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: -18px 0 18px; position: relative; }
+.atl-stat { background: #fff; border-radius: 16px; padding: 12px 14px; box-shadow: 0 4px 14px rgba(160,20,40,.12); }
+.atl-stat b { display: block; font-size: 24px; color: var(--r); direction: ltr; text-align: start; }
+.atl-stat span { font-size: 12px; color: var(--mut); }
+.atl h2 { font-size: 17px; margin: 22px 0 10px; }
+.atl-card { display: flex; align-items: center; gap: 12px; width: 100%; text-align: start; background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 14px; margin-bottom: 10px; min-height: 64px; color: inherit; text-decoration: none; }
+.atl-card:hover { border-color: var(--r); }
+.atl-ico { flex: none; width: 44px; height: 44px; border-radius: 12px; background: var(--pink); color: var(--r); display: grid; place-items: center; font-weight: 800; font-size: 13px; direction: ltr; }
+.atl-card .t { font-weight: 700; direction: ltr; text-align: start; unicode-bidi: plaintext; }
+
+.atl-card .s { direction: ltr; text-align: start; unicode-bidi: plaintext; font-size: 12px; color: var(--mut); margin-top: 2px; }
+.atl-bar { height: 5px; border-radius: 3px; background: var(--pink); margin-top: 8px; overflow: hidden; }
+.atl-bar i { display: block; height: 100%; background: var(--r); }
+.atl-tag { font-size: 11px; padding: 2px 8px; border-radius: 99px; background: var(--pink); color: var(--r2); margin-inline-start: auto; flex: none; }
+.atl-tag.warn { background: #fff1d6; color: #7a4b00; }
+.atl-top { display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: #fff; border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 3; }
+.atl-back { min-width: 44px; min-height: 44px; border-radius: 12px; border: 1px solid var(--line); background: #fff; color: var(--r); font-size: 18px; }
+.atl-top .tt { font-weight: 700; direction: ltr; unicode-bidi: plaintext; }
+.atl-top .ss { font-size: 12px; color: var(--mut); }
+.atl-chips { display: flex; gap: 8px; flex-wrap: wrap; margin: 14px 0; direction: ltr; }
+.atl-chip { min-height: 38px; padding: 6px 12px; border-radius: 99px; border: 1px solid var(--line); background: #fff; color: var(--ink); font-size: 13px; }
+.atl-chip[aria-pressed="true"] { background: var(--r); color: #fff; border-color: var(--r); }
+.atl-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)); gap: 6px; margin: 10px 0 16px; direction: ltr; }
+.atl-g { min-height: 40px; border-radius: 10px; border: 1px solid var(--line); background: #fff; font-size: 13px; color: var(--ink); }
+.atl-g.cur { outline: 2px solid var(--r); }
+.atl-g.ok { background: #dff3e6; border-color: #7cc596; }
+.atl-g.bad { background: #fde0e3; border-color: #e58a96; }
+.atl-g.pk { background: var(--pink); }
+.atl-q { background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 16px; direction: ltr; text-align: start; }
+.atl-qm { font-size: 12px; color: var(--mut); margin-bottom: 8px; display: flex; gap: 8px; flex-wrap: wrap; }
+.atl-qt { font-size: 17px; line-height: 1.45; font-weight: 600; margin: 0 0 12px; }
+.atl-qi { display: block; width: 100%; max-height: 320px; object-fit: contain; border-radius: 12px; background: #f6eef0; margin-bottom: 12px; }
+.atl-o { display: flex; gap: 10px; align-items: flex-start; width: 100%; text-align: start; background: #fff; border: 1.5px solid var(--line); border-radius: 12px; padding: 10px 12px; margin-bottom: 8px; min-height: 48px; color: var(--ink); line-height: 1.4; font-size: 15px; }
+.atl-o .l { flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--pink); color: var(--r2); display: grid; place-items: center; font-weight: 700; font-size: 13px; }
+.atl-o.pk { border-color: var(--r); background: #fff3f4; }
+.atl-o.ok { border-color: #3aa564; background: #e6f6ec; }
+.atl-o.ok .l { background: #3aa564; color: #fff; }
+.atl-o.bad { border-color: #d9354a; background: #fde7ea; }
+.atl-o.bad .l { background: #d9354a; color: #fff; }
+.atl-note { font-size: 13px; padding: 10px 12px; border-radius: 12px; margin-top: 4px; direction: rtl; }
+.atl-note.ok { background: #e6f6ec; color: #1d6b3a; }
+.atl-note.bad { background: #fde7ea; color: #9b1c2e; }
+.atl-note.warn { background: #fff4de; color: #6b4300; }
+.atl-nav { display: flex; gap: 10px; margin-top: 14px; direction: ltr; }
+.atl-btn { flex: 1; min-height: 48px; border-radius: 14px; border: 1px solid var(--line); background: #fff; color: var(--r); font-weight: 700; }
+.atl-btn.p { background: var(--r); color: #fff; border-color: var(--r); }
+.atl-btn:disabled { opacity: .4; }
+.atl-pg { display: block; width: 100%; border-radius: 12px; border: 1px solid var(--line); background: #fff; margin-bottom: 14px; }
+.atl-pgl { font-size: 12px; color: var(--mut); margin: 4px 2px; direction: ltr; text-align: start; }
+.atl-foot { text-align: center; color: var(--mut); font-size: 12px; margin: 26px 16px 0; }
+.atl-card > span:not(.atl-ico):not(.atl-tag) { text-align: start; }
+.atl-top .ss { direction: ltr; text-align: start; unicode-bidi: plaintext; }
+.atl-foot { direction: ltr; }
+html,body{margin:0}
+.atl{max-width:760px;margin:0 auto;box-shadow:0 0 0 1px #f3d3d7}
+.atl-ico{font-size:12px}
