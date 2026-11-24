@@ -121,3 +121,8 @@ html,body{margin:0}
 @media (prefers-reduced-motion:reduce){.atl-back,.atl-back::before{transition:none!important}.atl-back:active{transform:none}}
 /* back arrow: hide text glyph, chevron only */
 .atl-back{color:transparent!important;text-indent:-9999px;overflow:hidden;text-shadow:none}
+/* question slide */
+.atl-qn{animation:atlQN .32s cubic-bezier(.22,.61,.36,1) both}
+.atl-qp{animation:atlQP .32s cubic-bezier(.22,.61,.36,1) both}
+@keyframes atlQN{from{opacity:0;transform:translateX(44px)}}
+@keyframes atlQP{from{opacity:0;transform:translateX(-44px)}}
