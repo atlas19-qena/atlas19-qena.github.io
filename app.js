@@ -35,12 +35,33 @@ function profs(){try{return JSON.parse(lsget('atlas.profiles')||'{}')}catch(e){r
 function pkey(n){return n.trim().toLowerCase().replace(/\s+/g,' ')}
 function sha(t){var x='atlas|'+t;if(window.crypto&&crypto.subtle&&window.TextEncoder){return crypto.subtle.digest('SHA-256',new TextEncoder().encode(x)).then(function(b){return Array.prototype.map.call(new Uint8Array(b),function(c){return c.toString(16).padStart(2,'0')}).join('')})}var h1=5381;for(var i=0;i<x.length;i++)h1=((h1<<5)+h1+x.charCodeAt(i))|0;return Promise.resolve('f'+h1)}
 function load(id){try{return JSON.parse(lsget('atlas.p.'+CUR+'.'+id)||'{}')}catch(e){return {}}}
-function save(id,p){lsset('atlas.p.'+CUR+'.'+id,JSON.stringify(p))}
+function save(id,p){lsset('atlas.p.'+CUR+'.'+id,JSON.stringify(p));schedulePush()}
 function dispName(){if(CUR==='~guest')return 'ضيف';var p=profs()[CUR];return p?p.name:CUR}
 function setCur(k){CUR=k;if(k)lsset('atlas.cur',k);else{store['k:atlas.cur']='';try{localStorage.removeItem('atlas.cur')}catch(e){}}}
 function mistakesList(){var out=[];Object.keys(SETS).forEach(function(k){var q=SETS[k];if(!q.key)return;var p=load(k);q.items.forEach(function(it,i){if(p[it.n]&&p[it.n]!==it.a)out.push({set:q,it:it,idx:i,pick:p[it.n]})})});return out}
 function exportCode(){var pr=profs()[CUR];if(!pr)return '';var d={n:pr.name,h:pr.hash,p:{}};Object.keys(SETS).forEach(function(k){d.p[k]=load(k)});return btoa(unescape(encodeURIComponent(JSON.stringify(d))))}
 function importCode(c){var d=JSON.parse(decodeURIComponent(escape(atob(c.trim()))));if(!d||!d.n||!d.h)throw 0;var k=pkey(d.n),o=profs();o[k]={name:d.n,hash:d.h};lsset('atlas.profiles',JSON.stringify(o));var old=CUR;CUR=k;Object.keys(d.p||{}).forEach(function(id){if(SETS[id]){var cur=load(id),m=d.p[id];for(var q in m)cur[q]=m[q];save(id,cur)}});setCur(k)}
+
+var SBU='https://aohuvtnukfkbebyrzdol.supabase.co/rest/v1/rpc/',SBK='sb_publishable_oK96E2HQQHbbleN-ZNnZSA_JHfcefWV';
+var ISADM=false,pushT=null,syncMsg='';
+function derive(k,pin){if(!(window.crypto&&crypto.subtle&&window.TextEncoder))return Promise.reject(new Error('nocrypto'));var enc=new TextEncoder();return crypto.subtle.importKey('raw',enc.encode(pin),'PBKDF2',false,['deriveBits']).then(function(key){return crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt:enc.encode('atlas19|'+k),iterations:100000},key,256)}).then(function(b){return Array.prototype.map.call(new Uint8Array(b),function(c){return c.toString(16).padStart(2,'0')}).join('')})}
+function rpc(fn,body){return fetch(SBU+fn,{method:'POST',headers:{apikey:SBK,'Content-Type':'application/json'},body:JSON.stringify(body)}).then(function(r){if(!r.ok)throw new Error('http'+r.status);return r.json()})}
+function allData(){var d={};Object.keys(SETS).forEach(function(k){d[k]=load(k)});d.stats={m:mistakesList().length};return d}
+function setDirty(v){var o=profs();if(o[CUR]){o[CUR].dirty=v;lsset('atlas.profiles',JSON.stringify(o))}}
+function pushNow(){var pr=profs()[CUR];if(!pr||!pr.dh||CUR==='~guest')return Promise.resolve();return rpc('atlas_save',{p_name:pr.name,p_pin:pr.dh,p_data:allData()}).then(function(r){if(r&&r.status==='ok')setDirty(false);else setDirty(true)}).catch(function(){setDirty(true)})}
+function schedulePush(){var pr=profs()[CUR];if(!pr||!pr.dh||CUR==='~guest')return;setDirty(true);clearTimeout(pushT);pushT=setTimeout(pushNow,1200)}
+function applyRemote(d,keepLocal){Object.keys(SETS).forEach(function(k){var r=(d&&d[k])||{},l=load(k),m;if(keepLocal){m={};for(var a in r)m[a]=r[a];for(var b in l)m[b]=l[b]}else m=r;lsset('atlas.p.'+CUR+'.'+k,JSON.stringify(m))})}
+function bgPull(){var pr=profs()[CUR];if(!pr||!pr.dh||CUR==='~guest')return;rpc('atlas_login',{p_name:pr.name,p_pin:pr.dh,p_create:false}).then(function(r){if(!r||r.status!=='ok')return;ISADM=!!r.admin;if(pr.dirty){applyRemote(r.data,true);pushNow()}else applyRemote(r.data,false);if(state.view==='home')render()}).catch(function(){})}
+window.addEventListener('online',function(){var pr=profs()[CUR];if(pr&&pr.dirty)pushNow()});
+function ago(t){var s=(Date.now()-new Date(t).getTime())/1000;if(s<90)return 'دلوقتي';if(s<3600)return Math.round(s/60)+' د';if(s<86400)return Math.round(s/3600)+' س';return Math.round(s/86400)+' يوم'}
+function adminView(){var w=h('div',{class:'atl-wrap',style:'padding-top:14px'},[h('div',{class:'atl-note warn'},['جاري التحميل...'])]);var d=h('div');d.appendChild(top('لوحة الأدمن',null,function(){go('home')}));d.appendChild(w);
+ var pr=profs()[CUR];if(!pr||!pr.dh){w.innerHTML='';w.appendChild(h('div',{class:'atl-note bad'},['سجل دخول بالحساب الأدمن الأول']));return d}
+ rpc('atlas_admin_list',{p_name:pr.name,p_pin:pr.dh}).then(function(r){w.innerHTML='';if(!r||r.status!=='ok'){w.appendChild(h('div',{class:'atl-note bad'},[r&&r.status==='locked'?'الحساب مقفول مؤقتاً':'مفيش صلاحية']));return}
+  var us=r.users||[];d.querySelector('.ss')&&(d.querySelector('.ss').textContent=us.length+' مستخدم');
+  var tt=us.length;w.appendChild(h('div',{class:'atl-note ok'},[tt+' مستخدم مسجل']));
+  us.forEach(function(u){var tot=0,parts=[];Object.keys(u.counts||{}).forEach(function(k){var c=u.counts[k];tot+=c;if(c&&SETS[k])parts.push(k+' '+c)});
+   w.appendChild(h('div',{class:'atl-q'},[h('div',{class:'atl-qm'},[h('span',{},[u.name+(u.admin?' · أدمن':'')]),h('span',{},['آخر ظهور: '+ago(u.last_seen)])]),h('p',{class:'atl-qt',style:'font-size:14px'},['جاوب '+tot+' سؤال · أخطاء '+(u.mistakes||0)+' · دخل '+u.logins+' مرة']),parts.length?h('div',{class:'atl-sm'},[parts.join(' · ')]):null]))})}).catch(function(){w.innerHTML='';w.appendChild(h('div',{class:'atl-note bad'},['مفيش اتصال']))});
+ return d}
 function h(tag,attrs,kids){var e=document.createElement(tag);for(var k in (attrs||{})){if(k==='class')e.className=attrs[k];else if(k.slice(0,2)==='on')e.addEventListener(k.slice(2),attrs[k]);else if(attrs[k]!==false&&attrs[k]!=null)e.setAttribute(k,attrs[k])}
  (kids||[]).forEach(function(c){if(c==null||c===false)return;e.appendChild(typeof c==='string'?document.createTextNode(c):c)});return e}
 function top(title,sub,back){return h('div',{class:'atl-top'},[h('button',{type:'button',class:'atl-back','aria-label':'رجوع',onclick:back},['→']),h('div',{},[h('div',{class:'tt'},[title]),sub?h('div',{class:'ss'},[sub]):null])])}
@@ -50,6 +71,7 @@ function render(){app.innerHTML='';var v=state.view;
  if(!CUR&&v!=='login'){v=state.view='login'}
  if(v==='login')app.appendChild(loginView());
  else if(v==='xfer')app.appendChild(xferView());
+ else if(v==='admin')app.appendChild(adminView());
  else if(v==='mist'||v.indexOf('mist:')===0)app.appendChild(mistView(v.slice(5)));
  else if(v.indexOf('quiz:')===0)app.appendChild(quiz(SETS[v.slice(5)]));
  else if(v.indexOf('pg:')===0)app.appendChild(pages(v.slice(3)));
@@ -71,8 +93,9 @@ function home(){
   wrap.appendChild(h('button',{type:'button',class:'atl-card',onclick:function(){go('sub:'+s.id)}},[ico(s.name.slice(0,3)),h('span',{},[h('div',{class:'t'},[s.name]),h('div',{class:'s'},[info])])]))});
  wrap.appendChild(h('div',{class:'atl-foot'},['المحتوى من ملفات الدفعة. كل إجابة عليها علامة: "من الملفات" (متأكد منها من الملفات) أو "مؤقتة" (مش من الملفات ولسه هتتراجع).']));
  var ml=mistakesList();
- var bar=h('div',{class:'atl-user'},[h('span',{},['المستخدم: ',h('b',{},[dispName()])]),h('span',{},[h('button',{type:'button',class:'atl-lnk',onclick:function(){go('xfer')}},['كود النقل']),' · ',h('button',{type:'button',class:'atl-lnk',onclick:function(){setCur('');go('login')}},['تبديل'])])]);
+ var bar=h('div',{class:'atl-user'},[h('span',{},['المستخدم: ',h('b',{},[dispName()])]),h('span',{},[h('button',{type:'button',class:'atl-lnk',onclick:function(){go('xfer')}},['كود النقل']),' · ',h('button',{type:'button',class:'atl-lnk',onclick:function(){ISADM=false;setCur('');go('login')}},['تبديل'])])]);
  var mc=h('button',{type:'button',class:'atl-card',onclick:function(){go('mist')}},[ico('X'),h('span',{style:'flex:1'},[h('div',{class:'t'},['أخطائي']),h('div',{class:'s'},[ml.length?ml.length+' سؤال غلط':'مفيش أخطاء لسه'])]),h('span',{class:'atl-tag'+(ml.length?' warn':'')},[String(ml.length)])]);
+ if(ISADM)wrap.insertBefore(h('button',{type:'button',class:'atl-card',onclick:function(){go('admin')}},[ico('ADM'),h('span',{style:'flex:1'},[h('div',{class:'t'},['لوحة الأدمن']),h('div',{class:'s'},['مين دخل الموقع'])])]),wrap.children[1]);
  wrap.insertBefore(mc,wrap.children[1]);wrap.insertBefore(bar,wrap.firstChild);
  var f=h('div');f.appendChild(hero);f.appendChild(wrap);return f}
 function loginView(){
@@ -83,16 +106,27 @@ function loginView(){
  var ta=h('textarea',{class:'atl-in',rows:'3',placeholder:'الصق كود النقل هنا'});
  var w=h('div',{class:'atl-wrap',style:'padding-top:16px'},[
   h('h2',{},['ادخل باسمك']),
-  h('p',{class:'atl-sm'},['اكتب اسمك وPIN. لو الاسم جديد هيتعمل ملف ليك، ولو موجود هيتفتح بنفس الـPIN. تقدمك بيتحفظ باسمك على الجهاز ده.']),
+  h('p',{class:'atl-sm'},['اكتب اسمك وPIN. لو الاسم جديد هيتعمل حساب ليك، ولو موجود هيفتح بنفس الـPIN، وتقدمك بيظهر على أي جهاز تدخل منه. الـPIN أرقام بس، فاختار رقم مش سهل (6 أرقام أحسن).']),
   nm,pn,msg,
   h('button',{type:'button',class:'atl-btn p',style:'width:100%;margin-top:8px',onclick:function(){
    var n=nm.value.trim(),p=pn.value.trim();
    if(!n){say('اكتب الاسم');return}
    if(!/^[0-9]{4,12}$/.test(p)){say('الـPIN لازم يكون أرقام فقط، 4 على الأقل');return}
-   sha(pkey(n)+'|'+p).then(function(hs){var o=profs(),k=pkey(n);
-    if(o[k]){if(o[k].hash!==hs){say('الـPIN غلط للاسم ده');return}}
-    else{o[k]={name:n,hash:hs};lsset('atlas.profiles',JSON.stringify(o))}
-    setCur(k);go('home')})}},['دخول']),
+   var k=pkey(n),btn=this;btn.disabled=true;say('جاري الدخول...');
+   function done(){btn.disabled=false}
+   derive(k,p).then(function(dh){
+    return rpc('atlas_login',{p_name:n,p_pin:dh,p_create:true}).then(function(r){
+     if(r.status==='ok'||r.status==='created'){var o=profs(),old=o[k],dirty=r.status==='created'||!!(old&&(old.dirty||!old.dh));
+      o[k]={name:r.name||n,dh:dh,dirty:dirty};lsset('atlas.profiles',JSON.stringify(o));CUR=k;applyRemote(r.data,dirty);setCur(k);ISADM=!!r.admin;if(dirty)pushNow();go('home')}
+     else if(r.status==='bad'){say('الـPIN غلط للاسم ده');done()}
+     else if(r.status==='locked'){say('الحساب مقفول مؤقتاً بعد محاولات غلط كتير. جرّب بعد 10 دقايق.');done()}
+     else{say('الاسم أو الـPIN مش مقبول');done()}
+    })
+   }).catch(function(e){
+    var o=profs(),pr=o[k];
+    if(pr&&pr.dh&&e&&e.message!=='nocrypto'){derive(k,p).then(function(dh){if(dh===pr.dh){CUR=k;setCur(k);go('home')}else{say('الـPIN غلط للاسم ده');done()}})}
+    else{say('مفيش اتصال بالإنترنت. اتصل وجرّب تاني.');done()}
+   })}},['دخول']),
   h('button',{type:'button',class:'atl-btn',style:'width:100%;margin-top:8px',onclick:function(){setCur('~guest');go('home')}},['كمل بدون اسم (ضيف)']),
   h('h2',{style:'margin-top:22px'},['عندك كود نقل من جهاز تاني؟']),ta,
   h('button',{type:'button',class:'atl-btn',style:'width:100%;margin-top:8px',onclick:function(){try{importCode(ta.value);go('home')}catch(e){say('الكود مش صحيح')}}},['استيراد'])]);
@@ -159,5 +193,5 @@ function quiz(set){var p=load(set.id),s=null;SUBJECTS.forEach(function(x){if(x.q
   w.appendChild(h('div',{class:'atl-nav'},[h('button',{type:'button',class:'atl-btn',disabled:idx===0?'':false,onclick:function(){state.pos=idx-1;render();window.scrollTo(0,0)}},['← Previous']),h('button',{type:'button',class:'atl-btn p',disabled:idx>=list.length-1?'':false,onclick:function(){state.pos=idx+1;render();window.scrollTo(0,0)}},['Next →'])]))}
  w.appendChild(h('div',{class:'atl-nav'},[h('button',{type:'button',class:'atl-btn',onclick:function(){if(confirm('تمسح كل اختياراتك في الأسئلة دي؟')){save(set.id,{});state.pos=0;state.wrong=false;render()}}},['ابدأ من الأول (يمسح اختياراتك)'])]));
  var d=h('div');d.appendChild(top(set.title,answered+' / '+set.items.length+' answered'+(set.key?' · '+correct+' correct':''),function(){go('sub:'+s.id)}));d.appendChild(w);return d}
-render();
+render();bgPull();
 })();
