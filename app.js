@@ -14,6 +14,8 @@ var SETS={
 ['physio','para','patho'].forEach(function(k){SETS[k].key=true;SETS[k].mixed=true;SETS[k].items.forEach(function(it){var a=(window.ANS&&ANS[k]&&ANS[k][it.n])||null;if(a){it.a=a[0];it.src=a[1].charAt(0);it.lo=a[1].length>1}})});
 ['micro','atlas'].forEach(function(k){SETS[k].items.forEach(function(it){it.src='f'})});
 function srcTag(it){var t=it.src==='t'?['atl-tag warn','إجابة مؤقتة (مش من الملفات، لسه هتتراجع)']:['atl-tag','من الملفات'];var d=h('span',{},[h('span',{class:t[0]},[t[1]])]);if(it.lo)d.appendChild(h('span',{class:'atl-tag warn',style:'margin-inline-start:6px'},['ثقة قليلة']));return d}
+function brandEl(){var k=[];if(window.LOGO)k.push(h('img',{src:window.LOGO,alt:'ATLAS 19',class:'atl-logo'}));k.push(h('b',{},['ATLAS 19']));return h('div',{class:'atl-brand'},k)}
+(function(){var st=document.createElement('style');st.textContent='.atl-brand{flex-direction:column;gap:8px}.atl-logo{width:116px;height:116px;border-radius:50%;background:#fff;border:3px solid #fff;box-shadow:0 0 0 2px #c9a46a,0 6px 18px rgba(0,0,0,.28);object-fit:cover}';document.head.appendChild(st);if(window.FAV){var l=document.querySelector('link[rel=icon]');if(!l){l=document.createElement('link');l.rel='icon';document.head.appendChild(l)}l.type='image/jpeg';l.href=window.FAV}})();
 var SUBJECTS=[
  {id:'patho',name:'Patho',quizzes:['patho'],pages:[{id:'pt',title:'Patho practical slides',pages:seq('pt',5),note:'Reactive hyperplasia, TB lymphadenitis, Hodgkin lymphoma.'}]},
  {id:'micro',name:'Micro',quizzes:['micro'],pages:[]},
@@ -48,7 +50,7 @@ function render(){app.innerHTML='';var v=state.view;
  if(!CUR&&v!=='login'){v=state.view='login'}
  if(v==='login')app.appendChild(loginView());
  else if(v==='xfer')app.appendChild(xferView());
- else if(v==='mist')app.appendChild(mistView());
+ else if(v==='mist'||v.indexOf('mist:')===0)app.appendChild(mistView(v.slice(5)));
  else if(v.indexOf('quiz:')===0)app.appendChild(quiz(SETS[v.slice(5)]));
  else if(v.indexOf('pg:')===0)app.appendChild(pages(v.slice(3)));
  else if(v.indexOf('sub:')===0)app.appendChild(subject(v.slice(4)));
@@ -58,7 +60,7 @@ function ico(t){return h('span',{class:'atl-ico'},[t])}
 function home(){
  var total=Object.keys(SETS).reduce(function(a,k){return a+SETS[k].items.length},0);
  var ready=SUBJECTS.filter(function(s){return !s.soon}).length;
- var hero=h('div',{class:'atl-hero'},[h('div',{class:'atl-brand'},[h('b',{},['Atlas'])]),h('p',{},['مراجعة العملي · موديول الهيماتولوجي'])]);
+ var hero=h('div',{class:'atl-hero'},[brandEl(),h('p',{},['مراجعة العملي · موديول الهيماتولوجي'])]);
  var wrap=h('div',{class:'atl-wrap'},[
   h('div',{class:'atl-stats'},[h('div',{class:'atl-stat'},[h('b',{},[ready+' / '+SUBJECTS.length]),h('span',{},['مواد جاهزة'])]),h('div',{class:'atl-stat'},[h('b',{},[String(total)]),h('span',{},['سؤال عملي'])])]),
   h('h2',{},['المواد'])]);
@@ -94,7 +96,7 @@ function loginView(){
   h('button',{type:'button',class:'atl-btn',style:'width:100%;margin-top:8px',onclick:function(){setCur('~guest');go('home')}},['كمل بدون اسم (ضيف)']),
   h('h2',{style:'margin-top:22px'},['عندك كود نقل من جهاز تاني؟']),ta,
   h('button',{type:'button',class:'atl-btn',style:'width:100%;margin-top:8px',onclick:function(){try{importCode(ta.value);go('home')}catch(e){say('الكود مش صحيح')}}},['استيراد'])]);
- var d=h('div');d.appendChild(h('div',{class:'atl-hero'},[h('div',{class:'atl-brand'},[h('b',{},['Atlas'])]),h('p',{},['مراجعة العملي'])]));d.appendChild(w);return d}
+ var d=h('div');d.appendChild(h('div',{class:'atl-hero'},[brandEl(),h('p',{},['مراجعة العملي'])]));d.appendChild(w);return d}
 function xferView(){
  var code=exportCode();
  var ta=h('textarea',{class:'atl-in',rows:'6',readonly:'readonly'});ta.value=code||'ملف الضيف مفيهوش كود نقل';
@@ -102,17 +104,23 @@ function xferView(){
   h('p',{class:'atl-sm'},['التقدم محفوظ على الجهاز ده بس. عشان تنقله لجهاز تاني: انسخ الكود ده وفي الجهاز التاني اختار "استيراد" من شاشة الدخول. الكود فيه تقدمك، فاحتفظ بيه لنفسك.']),ta,
   h('button',{type:'button',class:'atl-btn p',style:'width:100%;margin-top:8px',onclick:function(){ta.select();try{navigator.clipboard.writeText(ta.value)}catch(e){document.execCommand('copy')}this.textContent='اتنسخ'}},['نسخ الكود'])]);
  var d=h('div');d.appendChild(top('كود النقل',null,function(){go('home')}));d.appendChild(w);return d}
-function mistView(){
- var ml=mistakesList(),w=h('div',{class:'atl-wrap',style:'padding-top:14px'});
- if(!ml.length)w.appendChild(h('div',{class:'atl-note ok'},['مفيش أخطاء. الأسئلة اللي ليها مفتاح إجابات بس هي اللي بتتحسب.']));
+function subjOfSet(k){var r=null;SUBJECTS.forEach(function(x){if(x.quizzes.indexOf(k)>=0)r=x});return r}
+function mistView(sid){
+ var all=mistakesList(),ml=sid?all.filter(function(m){var x=subjOfSet(m.set.id);return x&&x.id===sid}):all,w=h('div',{class:'atl-wrap',style:'padding-top:14px'});
+ var chips=[h('button',{type:'button',class:'atl-chip','aria-pressed':String(!sid),onclick:function(){go('mist')}},['الكل ('+all.length+')'])];
+ SUBJECTS.forEach(function(x){if(!x.quizzes.length)return;var n=all.filter(function(m){return subjOfSet(m.set.id)===x}).length;chips.push(h('button',{type:'button',class:'atl-chip','aria-pressed':String(sid===x.id),onclick:function(){go('mist:'+x.id)}},[x.name+' ('+n+')']))});
+ w.appendChild(h('div',{class:'atl-chips'},chips));
+ if(!ml.length)w.appendChild(h('div',{class:'atl-note ok'},['مفيش أخطاء هنا. الأسئلة اللي ليها إجابات بس هي اللي بتتحسب.']));
  ml.forEach(function(m){var it=m.it,L2='ABCDE';
   var c=h('div',{class:'atl-q'},[h('div',{class:'atl-qm'},[h('span',{},[m.set.title+' · Question '+it.n])]),h('div',{style:'margin:6px 0'},[srcTag(it)]),h('p',{class:'atl-qt'},[it.q])]);
   it.o.forEach(function(o,i){var l=L2[i],cls='atl-o';if(l===it.a)cls+=' ok';else if(l===m.pick)cls+=' bad';c.appendChild(h('div',{class:cls},[h('span',{class:'l'},[l]),h('span',{},[o])]))});
   c.appendChild(h('button',{type:'button',class:'atl-btn p',style:'width:100%;margin-top:8px',onclick:function(){var p=load(m.set.id);delete p[it.n];save(m.set.id,p);state={view:'quiz:'+m.set.id,pos:m.idx,sec:'',wrong:false};render();window.scrollTo(0,0)}},['حاول تاني']));
   w.appendChild(c)});
- var d=h('div');d.appendChild(top('أخطائي',ml.length+' سؤال',function(){go('home')}));d.appendChild(w);return d}
+ var d=h('div');d.appendChild(top('أخطائي'+(sid?' · '+subj(sid).name:''),ml.length+' سؤال',function(){go(sid?'sub:'+sid:'home')}));d.appendChild(w);return d}
 function subject(id){var s=subj(id),w=h('div',{class:'atl-wrap'});
- if(s.quizzes.length)w.appendChild(h('h2',{},['أسئلة']));
+ if(s.quizzes.length){var mn=mistakesList().filter(function(m){return subjOfSet(m.set.id)===s}).length;
+  w.appendChild(h('button',{type:'button',class:'atl-card',onclick:function(){go('mist:'+s.id)}},[ico('X'),h('span',{style:'flex:1'},[h('div',{class:'t'},['أخطائي في '+s.name]),h('div',{class:'s'},[mn?mn+' سؤال غلط':'مفيش أخطاء لسه'])])]));
+  w.appendChild(h('h2',{},['أسئلة']))}
  s.quizzes.forEach(function(k){var q=SETS[k],p=load(k),done=q.items.filter(function(i){return p[i.n]}).length;
   w.appendChild(h('button',{type:'button',class:'atl-card',onclick:function(){go('quiz:'+k)}},[ico('MCQ'),h('span',{style:'flex:1'},[h('div',{class:'t'},[q.title]),h('div',{class:'s'},[q.items.length+' questions · '+done+' answered']),h('div',{class:'atl-bar'},[h('i',{style:'width:'+(done/q.items.length*100)+'%'})])]),h('span',{class:'atl-tag'+(q.key&&!q.mixed?'':' warn')},[q.mixed?'ملفات + مؤقتة':(q.key?'بمفتاح إجابات':'بدون مفتاح')])]))});
  if(s.pages.length)w.appendChild(h('h2',{},['شرائح وملفات']));
