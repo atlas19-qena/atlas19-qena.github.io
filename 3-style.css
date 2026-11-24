@@ -66,3 +66,8 @@ body { background: #fdf3f4; }
 html,body{margin:0}
 .atl{max-width:760px;margin:0 auto;box-shadow:0 0 0 1px #f3d3d7}
 .atl-ico{font-size:12px}
+
+.atl-in{display:block;width:100%;box-sizing:border-box;margin:8px 0;padding:12px;border:1px solid #f0c3c9;border-radius:12px;font:inherit;background:#fff;direction:rtl}
+.atl-sm{font-size:13px;color:#6b4a50;line-height:1.7;margin:6px 0}
+.atl-user{display:flex;justify-content:space-between;align-items:center;font-size:13px;margin:12px 0}
+.atl-lnk{background:none;border:0;color:#c8102e;font:inherit;text-decoration:underline;padding:0;cursor:pointer}
