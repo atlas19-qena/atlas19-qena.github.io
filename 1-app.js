@@ -78,10 +78,10 @@ function h(tag,attrs,kids){var e=document.createElement(tag);for(var k in (attrs
 function top(title,sub,back,extra){return h('div',{class:'atl-top'},[h('button',{type:'button',class:'atl-back','aria-label':'رجوع',onclick:back},['→']),h('div',{},[h('div',{class:'tt'},[title]),sub?h('div',{class:'ss'},[sub]):null]),extra||null,thBtn()])}
 /* ===== dark mode: follows system, manual toggle remembered ===== */
 var MQD=window.matchMedia?matchMedia('(prefers-color-scheme: dark)'):{matches:false};
-function themeNow(){var s=lsget('atlas.theme');return s==='dark'||s==='light'?s:(MQD.matches?'dark':'light')}
+function themeNow(){var s=lsget('atlas.theme');return s==='dark'?'dark':'light'}
 function applyTheme(){var t=themeNow();document.documentElement.setAttribute('data-theme',t);var b=document.querySelectorAll('.atl-th');for(var i=0;i<b.length;i++)b[i].textContent=t==='dark'?'☀️':'🌙'}
 function thBtn(){return h('button',{type:'button',class:'atl-th','aria-label':'تبديل الوضع الليلي',title:'الوضع الليلي',onclick:function(){lsset('atlas.theme',themeNow()==='dark'?'light':'dark');applyTheme()}},[themeNow()==='dark'?'☀️':'🌙'])}
-try{MQD.addEventListener('change',function(){if(!lsget('atlas.theme'))applyTheme()})}catch(e){try{MQD.addListener(function(){if(!lsget('atlas.theme'))applyTheme()})}catch(e2){}}
+
 var state={view:'home',pos:0,sec:'',wrong:false};
 /* ===== motion: direction-aware view transitions ===== */
 var RM=(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)'))||{matches:true};
