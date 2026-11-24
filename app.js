@@ -107,16 +107,17 @@ function xferView(){
 function subjOfSet(k){var r=null;SUBJECTS.forEach(function(x){if(x.quizzes.indexOf(k)>=0)r=x});return r}
 function mistView(sid){
  var all=mistakesList(),ml=sid?all.filter(function(m){var x=subjOfSet(m.set.id);return x&&x.id===sid}):all,w=h('div',{class:'atl-wrap',style:'padding-top:14px'});
- var chips=[h('button',{type:'button',class:'atl-chip','aria-pressed':String(!sid),onclick:function(){go('mist')}},['الكل ('+all.length+')'])];
- SUBJECTS.forEach(function(x){if(!x.quizzes.length)return;var n=all.filter(function(m){return subjOfSet(m.set.id)===x}).length;chips.push(h('button',{type:'button',class:'atl-chip','aria-pressed':String(sid===x.id),onclick:function(){go('mist:'+x.id)}},[x.name+' ('+n+')']))});
- w.appendChild(h('div',{class:'atl-chips'},chips));
+ if(!sid){var dd=h('div');
+  SUBJECTS.forEach(function(x){if(!x.quizzes.length)return;var n=all.filter(function(m){return subjOfSet(m.set.id)===x}).length;
+   w.appendChild(h('button',{type:'button',class:'atl-card',onclick:function(){go('mist:'+x.id)}},[ico(x.name.slice(0,3)),h('span',{style:'flex:1'},[h('div',{class:'t'},[x.name]),h('div',{class:'s'},[n?n+' سؤال غلط':'مفيش أخطاء'])]),h('span',{class:'atl-tag'+(n?' warn':'')},[String(n)])]))});
+  dd.appendChild(top('أخطائي',all.length+' سؤال',function(){go('home')}));dd.appendChild(w);return dd}
  if(!ml.length)w.appendChild(h('div',{class:'atl-note ok'},['مفيش أخطاء هنا. الأسئلة اللي ليها إجابات بس هي اللي بتتحسب.']));
  ml.forEach(function(m){var it=m.it,L2='ABCDE';
   var c=h('div',{class:'atl-q'},[h('div',{class:'atl-qm'},[h('span',{},[m.set.title+' · Question '+it.n])]),h('div',{style:'margin:6px 0'},[srcTag(it)]),h('p',{class:'atl-qt'},[it.q])]);
   it.o.forEach(function(o,i){var l=L2[i],cls='atl-o';if(l===it.a)cls+=' ok';else if(l===m.pick)cls+=' bad';c.appendChild(h('div',{class:cls},[h('span',{class:'l'},[l]),h('span',{},[o])]))});
   c.appendChild(h('button',{type:'button',class:'atl-btn p',style:'width:100%;margin-top:8px',onclick:function(){var p=load(m.set.id);delete p[it.n];save(m.set.id,p);state={view:'quiz:'+m.set.id,pos:m.idx,sec:'',wrong:false};render();window.scrollTo(0,0)}},['حاول تاني']));
   w.appendChild(c)});
- var d=h('div');d.appendChild(top('أخطائي'+(sid?' · '+subj(sid).name:''),ml.length+' سؤال',function(){go(sid?'sub:'+sid:'home')}));d.appendChild(w);return d}
+ var d=h('div');d.appendChild(top('أخطائي'+(sid?' · '+subj(sid).name:''),ml.length+' سؤال',function(){go(sid?'mist':'home')}));d.appendChild(w);return d}
 function subject(id){var s=subj(id),w=h('div',{class:'atl-wrap'});
  if(s.quizzes.length){var mn=mistakesList().filter(function(m){return subjOfSet(m.set.id)===s}).length;
   w.appendChild(h('button',{type:'button',class:'atl-card',onclick:function(){go('mist:'+s.id)}},[ico('X'),h('span',{style:'flex:1'},[h('div',{class:'t'},['أخطائي في '+s.name]),h('div',{class:'s'},[mn?mn+' سؤال غلط':'مفيش أخطاء لسه'])])]));
