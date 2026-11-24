@@ -302,7 +302,7 @@ function rndView(){if(!RQ)RQ=buildRnd();var R=RQ,w=h('div',{class:'atl-wrap'}),d
  if(R.on&&rtLeft(R)<=0){setTimeout(function(){rtFinish(R,true)},0)}
  var ans=R.list.filter(function(x){return x.pick}).length,cor=R.list.filter(function(x){return x.pick&&x.pick===x.it.a}).length;
  function nm(x){var sj=subjOfSet(x.k);return sj?sj.name:x.k}
- if(R.done){var pc=Math.round(cor*100/R.list.length);
+ if(R.done){if(!R.sc){R.sc=1;var _t=function(){window.scrollTo(0,0);if(document.scrollingElement)document.scrollingElement.scrollTop=0};setTimeout(_t,0);setTimeout(_t,150)}var pc=Math.round(cor*100/R.list.length);
   if(R.up)w.appendChild(h('div',{class:'atl-note bad',style:'margin:12px 0 30px;font-weight:700;text-align:center'},['⏰ انتهى الوقت واتسلم الاختبار تلقائي']));
   w.appendChild(h('div',{class:'atl-stats atl-stats3'},[h('div',{class:'atl-stat'},[h('b',{},[cor+' / '+R.list.length]),h('span',{},['الدرجة'])]),h('div',{class:'atl-stat'},[h('b',{},[pc+'%']),h('span',{},['النسبة'])]),R.fin?h('div',{class:'atl-stat'},[h('b',{},[fmtT(R.used)]),h('span',{},['الوقت المستخدم'])]):h('div',{class:'atl-stat'},[h('b',{},[String(R.list.length-ans)]),h('span',{},['من غير إجابة'])])]));
   var wr=R.list.filter(function(x){return x.pick!==x.it.a});
