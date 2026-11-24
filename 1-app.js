@@ -67,7 +67,14 @@ function h(tag,attrs,kids){var e=document.createElement(tag);for(var k in (attrs
 function top(title,sub,back){return h('div',{class:'atl-top'},[h('button',{type:'button',class:'atl-back','aria-label':'رجوع',onclick:back},['→']),h('div',{},[h('div',{class:'tt'},[title]),sub?h('div',{class:'ss'},[sub]):null])])}
 var state={view:'home',pos:0,sec:'',wrong:false};
 function go(v){state={view:v,pos:0,sec:'',wrong:false};render();window.scrollTo(0,0)}
-function render(){app.innerHTML='';var v=state.view;
+/* UX: tap feedback (emoji, haptics) and scroll keeping */
+var FX_OK=['🎉','✅','🔥','💪','⭐'],FX_BAD=['💡','🤔','📚'],STREAK=0;
+function pickFx(a){return a[Math.floor(Math.random()*a.length)]}
+function buzz(ok){try{navigator.vibrate&&navigator.vibrate(ok?30:[40,40,40])}catch(e){}}
+function setFx(ok){STREAK=ok?STREAK+1:0;window.__fx=(ok&&STREAK>=3)?'🔥 x'+STREAK:pickFx(ok?FX_OK:FX_BAD);buzz(ok)}
+function spawnFx(){if(!window.__fx)return;var t=app.querySelector('.atl-o.bad')||app.querySelector('.atl-o.ok')||app.querySelector('.atl-note.ok,.atl-note.bad');if(t){t.style.position='relative';var s=document.createElement('span');s.className='atl-fx';s.textContent=window.__fx;t.appendChild(s);setTimeout(function(){if(s.parentNode)s.parentNode.removeChild(s)},950)}window.__fx=null}
+function render(){var y=window.scrollY||0;renderCore();window.scrollTo(0,y);spawnFx()}
+function renderCore(){app.innerHTML='';var v=state.view;
  if(!CUR&&v!=='login'){v=state.view='login'}
  if(v==='login')app.appendChild(loginView());
  else if(v==='xfer')app.appendChild(xferView());
@@ -194,7 +201,7 @@ function pcqView(){
   if(!sv){card.appendChild(h('button',{type:'button',class:'atl-btn p',style:'width:100%;margin-top:12px',onclick:function(){
     var a=inputs.map(function(x){return x.value.trim()});if(!a.some(Boolean)){inp0(inputs);return}
     var fl=cur.f.map(function(f,i){return gradeField(f,a[i])?1:0});
-    p[cur.n]={r:fl.every(function(x){return x})?1:0,a:a,f:fl};save('pcq',p);render()}},['تحقق'])) }
+    p[cur.n]={r:fl.every(function(x){return x})?1:0,a:a,f:fl};save('pcq',p);setFx(!!p[cur.n].r);render()}},['تحقق'])) }
   else{
    card.appendChild(sv.r?h('div',{class:'atl-note ok',style:'font-size:16px;font-weight:700;text-align:center'},['✓ صح'+(sv.o?' (اعتبرتها صح)':'')]):h('div',{class:'atl-note bad',style:'font-size:16px;font-weight:700;text-align:center'},['✗ غلط']));
    var row=h('div',{class:'atl-nav'},[]);
@@ -202,7 +209,7 @@ function pcqView(){
    row.appendChild(h('button',{type:'button',class:'atl-btn',onclick:function(){delete p[cur.n];save('pcq',p);render()}},['حاول تاني']));
    card.appendChild(row)}
   w.appendChild(card);
-  w.appendChild(h('div',{class:'atl-nav'},[h('button',{type:'button',class:'atl-btn',disabled:idx===0?'':false,onclick:function(){state.pos=idx-1;render();window.scrollTo(0,0)}},['← Previous']),h('button',{type:'button',class:'atl-btn p',disabled:idx>=list.length-1?'':false,onclick:function(){state.pos=idx+1;render();window.scrollTo(0,0)}},['Next →'])]))}
+  w.appendChild(h('div',{class:'atl-nav atl-pn'},[h('button',{type:'button',class:'atl-btn',disabled:idx===0?'':false,onclick:function(){state.pos=idx-1;render();window.scrollTo(0,0)}},['← Previous']),h('button',{type:'button',class:'atl-btn p',disabled:idx>=list.length-1?'':false,onclick:function(){state.pos=idx+1;render();window.scrollTo(0,0)}},['Next →'])]))}
  w.appendChild(h('div',{class:'atl-nav'},[h('button',{type:'button',class:'atl-btn',onclick:function(){if(confirm('تمسح كل إجاباتك في الجزء ده؟')){save('pcq',{});state.pos=0;state.wrong=false;render()}}},['ابدأ من الأول (يمسح إجاباتك)'])]));
  var d=h('div');d.appendChild(top('Para Practical Complete',done+' / '+PCQ.length+' answered · '+right+' right',function(){go('sub:para')}));d.appendChild(w);return d}
 function inp0(a){a[0]&&a[0].focus()}
@@ -231,12 +238,15 @@ function quiz(set){var p=load(set.id),s=null;SUBJECTS.forEach(function(x){if(x.q
    set.images?h('img',{class:'atl-qi',src:set.images[cur.n-1],alt:'Image for question '+cur.n}):null,h('p',{class:'atl-qt'},[cur.q])]);
   cur.o.forEach(function(o,i){var l=L[i],cls='atl-o';
    if(set.key&&pk){if(l===cur.a)cls+=' ok';else if(l===pk)cls+=' bad'}else if(pk===l)cls+=' pk';
-   card.appendChild(h('button',{type:'button',class:cls,onclick:function(){if(p[cur.n])return;p[cur.n]=l;save(set.id,p);render()}},[h('span',{class:'l'},[l]),h('span',{},[o])]))});
+   card.appendChild(h('button',{type:'button',class:cls,onclick:function(){if(p[cur.n])return;p[cur.n]=l;save(set.id,p);if(set.key)setFx(l===cur.a);render()}},[h('span',{class:'l'},[l]),h('span',{},[o])]))});
   if(set.key&&pk)card.appendChild(pk===cur.a?h('div',{class:'atl-note ok'},['إجابة صحيحة ('+cur.a+')']):h('div',{class:'atl-note bad'},['غلط. الإجابة الصحيحة: '+cur.a]));
   if(!set.key&&pk)card.appendChild(h('div',{class:'atl-note warn'},['اخترت '+pk+'. مفيش مفتاح إجابة في الملف.']));
   w.appendChild(card);
-  w.appendChild(h('div',{class:'atl-nav'},[h('button',{type:'button',class:'atl-btn',disabled:idx===0?'':false,onclick:function(){state.pos=idx-1;render();window.scrollTo(0,0)}},['← Previous']),h('button',{type:'button',class:'atl-btn p',disabled:idx>=list.length-1?'':false,onclick:function(){state.pos=idx+1;render();window.scrollTo(0,0)}},['Next →'])]))}
+  w.appendChild(h('div',{class:'atl-nav atl-pn'},[h('button',{type:'button',class:'atl-btn',disabled:idx===0?'':false,onclick:function(){state.pos=idx-1;render();window.scrollTo(0,0)}},['← Previous']),h('button',{type:'button',class:'atl-btn p',disabled:idx>=list.length-1?'':false,onclick:function(){state.pos=idx+1;render();window.scrollTo(0,0)}},['Next →'])]))}
  w.appendChild(h('div',{class:'atl-nav'},[h('button',{type:'button',class:'atl-btn',onclick:function(){if(confirm('تمسح كل اختياراتك في الأسئلة دي؟')){save(set.id,{});state.pos=0;state.wrong=false;render()}}},['ابدأ من الأول (يمسح اختياراتك)'])]));
  var d=h('div');d.appendChild(top(set.title,answered+' / '+set.items.length+' answered'+(set.key?' · '+correct+' correct':''),function(){go('sub:'+s.id)}));d.appendChild(w);return d}
 render();bgPull();
+/* swipe: left = next, right = previous (nav is ltr) */
+(function(){var x0=null,y0=0;app.addEventListener('touchstart',function(e){var t=e.touches[0];x0=t.clientX;y0=t.clientY},{passive:true});
+app.addEventListener('touchend',function(e){if(x0===null)return;var t=e.changedTouches[0],dx=t.clientX-x0,dy=t.clientY-y0;x0=null;if(Math.abs(dx)<70||Math.abs(dx)<Math.abs(dy)*1.5)return;if(document.activeElement&&/INPUT|TEXTAREA/.test(document.activeElement.tagName))return;var b=app.querySelector('.atl-pn');if(!b)return;var bt=b.querySelectorAll('.atl-btn');if(bt.length<2)return;var tgt=dx<0?bt[1]:bt[0];if(!tgt.disabled)tgt.click()},{passive:true})})();
 })();
