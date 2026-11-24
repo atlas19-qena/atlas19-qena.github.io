@@ -66,7 +66,13 @@ function adminView(){var w=h('div',{class:'atl-wrap',style:'padding-top:14px'},[
  return d}
 function h(tag,attrs,kids){var e=document.createElement(tag);for(var k in (attrs||{})){if(k==='class')e.className=attrs[k];else if(k.slice(0,2)==='on')e.addEventListener(k.slice(2),attrs[k]);else if(attrs[k]!==false&&attrs[k]!=null)e.setAttribute(k,attrs[k])}
  (kids||[]).forEach(function(c){if(c==null||c===false)return;e.appendChild(typeof c==='string'?document.createTextNode(c):c)});return e}
-function top(title,sub,back){return h('div',{class:'atl-top'},[h('button',{type:'button',class:'atl-back','aria-label':'رجوع',onclick:back},['→']),h('div',{},[h('div',{class:'tt'},[title]),sub?h('div',{class:'ss'},[sub]):null])])}
+function top(title,sub,back,extra){return h('div',{class:'atl-top'},[h('button',{type:'button',class:'atl-back','aria-label':'رجوع',onclick:back},['→']),h('div',{},[h('div',{class:'tt'},[title]),sub?h('div',{class:'ss'},[sub]):null]),extra||null,thBtn()])}
+/* ===== dark mode: follows system, manual toggle remembered ===== */
+var MQD=window.matchMedia?matchMedia('(prefers-color-scheme: dark)'):{matches:false};
+function themeNow(){var s=lsget('atlas.theme');return s==='dark'||s==='light'?s:(MQD.matches?'dark':'light')}
+function applyTheme(){var t=themeNow();document.documentElement.setAttribute('data-theme',t);var b=document.querySelectorAll('.atl-th');for(var i=0;i<b.length;i++)b[i].textContent=t==='dark'?'☀️':'🌙'}
+function thBtn(){return h('button',{type:'button',class:'atl-th','aria-label':'تبديل الوضع الليلي',title:'الوضع الليلي',onclick:function(){lsset('atlas.theme',themeNow()==='dark'?'light':'dark');applyTheme()}},[themeNow()==='dark'?'☀️':'🌙'])}
+try{MQD.addEventListener('change',function(){if(!lsget('atlas.theme'))applyTheme()})}catch(e){try{MQD.addListener(function(){if(!lsget('atlas.theme'))applyTheme()})}catch(e2){}}
 var state={view:'home',pos:0,sec:'',wrong:false};
 /* ===== motion: direction-aware view transitions ===== */
 var RM=(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)'))||{matches:true};
@@ -122,7 +128,7 @@ function home(){
  var bar=h('div',{class:'atl-user'},[h('span',{},['المستخدم: ',h('b',{},[dispName()])]),h('span',{},[h('button',{type:'button',class:'atl-lnk',onclick:function(){go('xfer')}},['كود النقل']),' · ',h('button',{type:'button',class:'atl-lnk',onclick:function(){ISADM=false;setCur('');go('login')}},['تبديل'])])]);
  var mc=h('button',{type:'button',class:'atl-card',onclick:function(){go('mist')}},[ico('X'),h('span',{style:'flex:1'},[h('div',{class:'t'},['أخطائي']),h('div',{class:'s'},[ml.length?ml.length+' سؤال غلط':'مفيش أخطاء لسه'])]),h('span',{class:'atl-tag'+(ml.length?' warn':'')},[String(ml.length)])]);
  if(ISADM)wrap.insertBefore(h('button',{type:'button',class:'atl-card',onclick:function(){go('admin')}},[ico('ADM'),h('span',{style:'flex:1'},[h('div',{class:'t'},['لوحة الأدمن']),h('div',{class:'s'},['مين دخل الموقع'])])]),wrap.children[1]);
- wrap.insertBefore(mc,wrap.children[1]);wrap.insertBefore(bar,wrap.firstChild);
+ bar.appendChild(thBtn());wrap.insertBefore(mc,wrap.children[1]);wrap.insertBefore(bar,wrap.firstChild);
  var f=h('div');f.appendChild(hero);f.appendChild(wrap);return f}
 function loginView(){
  var nm=h('input',{class:'atl-in',type:'text',placeholder:'الاسم',autocomplete:'off',maxlength:'30'});
@@ -272,23 +278,42 @@ function askYes(msg,yes){var ov=document.createElement('div');ov.className='atl-
 
 function qTop(){var q=app.querySelector('.atl-q');if(!q)return;var r=q.getBoundingClientRect().top;if(r<76)window.scrollTo(0,Math.max(0,(window.scrollY||0)+r-76))}
 function shuf(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
+/* ===== random quiz: optional 30-minute timer ===== */
+var RT_TOTAL=1800,RT_IV=null;
+function fmtT(n){n=Math.max(0,Math.round(n));var m=Math.floor(n/60),x=n%60;return (m<10?'0':'')+m+':'+(x<10?'0':'')+x}
+function rtLeft(R){return R.on?Math.max(0,Math.ceil((R.end-Date.now())/1000)):R.left}
+function rtPause(R){if(R.on){R.left=rtLeft(R);R.on=false}}
+function rtStart(R){R.end=Date.now()+R.left*1000;R.on=true;rtRun(R)}
+function rtFinish(R,up){rtPause(R);R.fin=true;R.up=!!up;R.used=RT_TOTAL-R.left;R.done=true;if(RT_IV){clearInterval(RT_IV);RT_IV=null}window.__qin=true;render();window.scrollTo(0,0)}
+function rtPaint(R){var e=document.getElementById('atl-tm');if(!e)return false;var l=rtLeft(R);e.textContent='⏱ '+fmtT(l);e.className='atl-tm'+(l<=60?' crit':l<=300?' warn':'');
+ if(l<=300&&!R.w5&&l>60){R.w5=1;rtWarn('باقي 5 دقايق')}if(l<=60&&!R.w1){R.w1=1;rtWarn('باقي أقل من دقيقة!');buzz(false)}return true}
+function rtWarn(t){var e=document.getElementById('atl-tw');if(!e)return;e.textContent=t;e.style.display='block';setTimeout(function(){if(e)e.style.display='none'},5000)}
+function rtRun(R){if(RT_IV)clearInterval(RT_IV);RT_IV=setInterval(function(){if(RQ!==R||R.done||!R.on){clearInterval(RT_IV);RT_IV=null;return}
+ if(!document.getElementById('atl-tm'))return;
+ if(rtLeft(R)<=0){rtFinish(R,true);return}rtPaint(R)},1000)}
 function buildRnd(){var ks=Object.keys(SETS),N=30,per=Math.floor(N/ks.length),pool={},out=[],rest=[];
  ks.forEach(function(k){pool[k]=shuf(SETS[k].items.filter(function(x){return x.a&&x.o&&x.o.length}))});
  ks.forEach(function(k){pool[k].splice(0,per).forEach(function(it){out.push({k:k,it:it,pick:null})})});
  ks.forEach(function(k){pool[k].forEach(function(it){rest.push({k:k,it:it,pick:null})})});
  rest=shuf(rest);while(out.length<N&&rest.length)out.push(rest.shift());
- return {list:shuf(out),i:0,done:false}}
+ var tp=lsget('atlas.rtimer')!=='0';return {list:shuf(out),i:0,done:false,left:RT_TOTAL,on:false,tmr:tp,fin:false}}
 function rndView(){if(!RQ)RQ=buildRnd();var R=RQ,w=h('div',{class:'atl-wrap'}),d=h('div');
+ if(R.tmr&&!R.fin&&!R.on&&!R.done&&R.left>0)rtStart(R);
+ if(R.on&&rtLeft(R)<=0){setTimeout(function(){rtFinish(R,true)},0)}
  var ans=R.list.filter(function(x){return x.pick}).length,cor=R.list.filter(function(x){return x.pick&&x.pick===x.it.a}).length;
  function nm(x){var sj=subjOfSet(x.k);return sj?sj.name:x.k}
  if(R.done){var pc=Math.round(cor*100/R.list.length);
-  w.appendChild(h('div',{class:'atl-stats'},[h('div',{class:'atl-stat'},[h('b',{},[cor+' / '+R.list.length]),h('span',{},['الدرجة'])]),h('div',{class:'atl-stat'},[h('b',{},[pc+'%']),h('span',{},['النسبة'])])]));
+  if(R.up)w.appendChild(h('div',{class:'atl-note bad',style:'margin:12px 0 30px;font-weight:700;text-align:center'},['⏰ انتهى الوقت واتسلم الاختبار تلقائي']));
+  w.appendChild(h('div',{class:'atl-stats atl-stats3'},[h('div',{class:'atl-stat'},[h('b',{},[cor+' / '+R.list.length]),h('span',{},['الدرجة'])]),h('div',{class:'atl-stat'},[h('b',{},[pc+'%']),h('span',{},['النسبة'])]),R.fin?h('div',{class:'atl-stat'},[h('b',{},[fmtT(R.used)]),h('span',{},['الوقت المستخدم'])]):h('div',{class:'atl-stat'},[h('b',{},[String(R.list.length-ans)]),h('span',{},['من غير إجابة'])])]));
   var wr=R.list.filter(function(x){return x.pick!==x.it.a});
   if(wr.length){w.appendChild(h('h2',{},['الأسئلة اللي غلطت فيها أو سبتها']));
    wr.forEach(function(x){var i=R.list.indexOf(x);w.appendChild(h('button',{type:'button',class:'atl-card',onclick:function(){R.done=false;R.i=i;window.__qin=true;render();window.scrollTo(0,0)}},[ico(nm(x).slice(0,3)),h('span',{style:'flex:1'},[h('div',{class:'t'},['سؤال '+(i+1)]),h('div',{class:'s'},[x.pick?'اخترت '+x.pick+' والصح '+x.it.a:'من غير إجابة، والصح '+x.it.a])])]))})}
   else w.appendChild(h('div',{class:'atl-note ok'},['ممتاز! كل إجاباتك صح.']));
-  w.appendChild(h('div',{class:'atl-nav'},[h('button',{type:'button',class:'atl-btn p',onclick:function(){RQ=buildRnd();window.__qin=true;render();window.scrollTo(0,0)}},['اختبار عشوائي جديد'])]));
-  d.appendChild(top('نتيجة الاختبار العشوائي',ans+' / '+R.list.length+' answered',function(){go('home')}));d.appendChild(w);return d}
+  w.appendChild(h('div',{class:'atl-nav'},[h('button',{type:'button',class:'atl-btn p',onclick:function(){rtPause(R);RQ=buildRnd();window.__qin=true;render();window.scrollTo(0,0)}},['اختبار عشوائي جديد'])]));
+  d.appendChild(top('نتيجة الاختبار العشوائي',ans+' / '+R.list.length+' answered',function(){rtPause(R);go('home')}));d.appendChild(w);return d}
+ var tb=h('button',{type:'button',class:'atl-chip atl-tmt','aria-pressed':String(!!R.tmr),onclick:function(){if(R.fin)return;if(R.tmr){R.tmr=false;rtPause(R);lsset('atlas.rtimer','0')}else{R.tmr=true;lsset('atlas.rtimer','1');rtStart(R)}render()}},[R.fin?'الوقت المستخدم '+fmtT(R.used):R.tmr?'التايمر شغال (30 دقيقة) · اضغط لإيقافه':'شغّل تايمر 30 دقيقة']);
+ w.appendChild(h('div',{class:'atl-chips'},[tb]));
+ w.appendChild(h('div',{id:'atl-tw',class:'atl-note warn atl-tw',style:'display:none',role:'alert'}));
  var g=h('div',{class:'atl-grid'});
  R.list.forEach(function(x,i){var cls='atl-g'+(i===R.i?' cur':'')+(x.pick?(x.pick===x.it.a?' ok':' bad'):'');g.appendChild(h('button',{type:'button',class:cls,onclick:function(){R.i=i;window.__qin=true;render()}},[String(i+1)]))});
  w.appendChild(g);
@@ -300,8 +325,10 @@ function rndView(){if(!RQ)RQ=buildRnd();var R=RQ,w=h('div',{class:'atl-wrap'}),d
  if(x.pick)card.appendChild(x.pick===it.a?h('div',{class:'atl-note ok'},['إجابة صحيحة ('+it.a+')']):h('div',{class:'atl-note bad'},['غلط. الإجابة الصحيحة: '+it.a]));
  w.appendChild(card);
  var last=R.i>=R.list.length-1;
- w.appendChild(h('div',{class:'atl-nav atl-pn'},[h('button',{type:'button',class:'atl-btn',disabled:R.i===0?'':false,onclick:function(){window.__qd='p';R.i--;window.__qin=true;render();qTop()}},['← Previous']),h('button',{type:'button',class:'atl-btn p',onclick:function(){if(last){R.done=true}else R.i++;window.__qd='n';window.__qin=true;render();qTop()}},[last?'Finish ✓':'Next →'])]));
- d.appendChild(top('اختبار عشوائي',ans+' / '+R.list.length+' answered · '+cor+' correct',function(){go('home')}));d.appendChild(w);return d}
+ w.appendChild(h('div',{class:'atl-nav atl-pn'},[h('button',{type:'button',class:'atl-btn',disabled:R.i===0?'':false,onclick:function(){window.__qd='p';R.i--;window.__qin=true;render();qTop()}},['← Previous']),h('button',{type:'button',class:'atl-btn p',onclick:function(){if(last){if(R.tmr&&!R.fin)rtFinish(R,false);else R.done=true}else R.i++;window.__qd='n';window.__qin=true;render();qTop()}},[last?'Finish ✓':'Next →'])]));
+ var tme=null;if(R.tmr&&!R.fin){tme=h('span',{id:'atl-tm',class:'atl-tm','aria-live':'off'},['⏱ '+fmtT(rtLeft(R))])}
+ d.appendChild(top('اختبار عشوائي',ans+' / '+R.list.length+' answered · '+cor+' correct',function(){rtPause(R);go('home')},tme));
+ if(tme)setTimeout(function(){rtPaint(R)},0);d.appendChild(w);return d}
 function quiz(set){var p=load(set.id),s=null;SUBJECTS.forEach(function(x){if(x.quizzes.indexOf(set.id)>=0)s=x});
  var secs=[];set.items.forEach(function(i){if(i.s&&secs.indexOf(i.s)<0)secs.push(i.s)});
  function wrong(q){return set.key&&p[q.n]&&p[q.n]!==q.a}
@@ -330,7 +357,7 @@ function quiz(set){var p=load(set.id),s=null;SUBJECTS.forEach(function(x){if(x.q
   w.appendChild(h('div',{class:'atl-nav atl-pn'},[h('button',{type:'button',class:'atl-btn',disabled:idx===0?'':false,onclick:function(){window.__qin=true;window.__qd='p';state.pos=idx-1;window.__qin=true;render();qTop()}},['← Previous']),h('button',{type:'button',class:'atl-btn p',disabled:idx>=list.length-1?'':false,onclick:function(){window.__qin=true;window.__qd='n';state.pos=idx+1;window.__qin=true;render();qTop()}},['Next →'])]))}
  w.appendChild(h('div',{class:'atl-nav'},[h('button',{type:'button',class:'atl-btn',onclick:function(){askYes('تمسح كل اختياراتك في الأسئلة دي؟',function(){save(set.id,{});state.pos=0;state.wrong=false;render()})}},['ابدأ من الأول (يمسح اختياراتك)'])]));
  var d=h('div');d.appendChild(top(set.title,answered+' / '+set.items.length+' answered'+(set.key?' · '+correct+' correct':''),function(){go('sub:'+s.id)}));d.appendChild(w);return d}
-render();bgPull();
+applyTheme();render();bgPull();
 /* swipe: left = next, right = previous (nav is ltr) */
 (function(){var x0=null,y0=0;app.addEventListener('touchstart',function(e){var t=e.touches[0];x0=t.clientX;y0=t.clientY},{passive:true});
 app.addEventListener('touchend',function(e){if(x0===null)return;var t=e.changedTouches[0],dx=t.clientX-x0,dy=t.clientY-y0;x0=null;if(Math.abs(dx)<70||Math.abs(dx)<Math.abs(dy)*1.5)return;if(document.activeElement&&/INPUT|TEXTAREA/.test(document.activeElement.tagName))return;var b=app.querySelector('.atl-pn');if(!b)return;var bt=b.querySelectorAll('.atl-btn');if(bt.length<2)return;var tgt=dx<0?bt[1]:bt[0];if(!tgt.disabled)tgt.click()},{passive:true})})();
