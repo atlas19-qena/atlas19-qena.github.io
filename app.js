@@ -23,15 +23,30 @@ var SUBJECTS=[
 ];
 var app=document.getElementById('app');
 var store={};
-function load(id){try{return JSON.parse(localStorage.getItem('atlas.picks.'+id)||'{}')}catch(e){return store[id]||{}}}
-function save(id,p){store[id]=p;try{localStorage.setItem('atlas.picks.'+id,JSON.stringify(p))}catch(e){}}
+var CUR='';try{CUR=localStorage.getItem('atlas.cur')||''}catch(e){}
+function lsget(k){try{return localStorage.getItem(k)}catch(e){return store['k:'+k]||null}}
+function lsset(k,v){store['k:'+k]=v;try{localStorage.setItem(k,v)}catch(e){}}
+function profs(){try{return JSON.parse(lsget('atlas.profiles')||'{}')}catch(e){return {}}}
+function pkey(n){return n.trim().toLowerCase().replace(/\s+/g,' ')}
+function sha(t){var x='atlas|'+t;if(window.crypto&&crypto.subtle&&window.TextEncoder){return crypto.subtle.digest('SHA-256',new TextEncoder().encode(x)).then(function(b){return Array.prototype.map.call(new Uint8Array(b),function(c){return c.toString(16).padStart(2,'0')}).join('')})}var h1=5381;for(var i=0;i<x.length;i++)h1=((h1<<5)+h1+x.charCodeAt(i))|0;return Promise.resolve('f'+h1)}
+function load(id){try{return JSON.parse(lsget('atlas.p.'+CUR+'.'+id)||'{}')}catch(e){return {}}}
+function save(id,p){lsset('atlas.p.'+CUR+'.'+id,JSON.stringify(p))}
+function dispName(){if(CUR==='~guest')return 'ضيف';var p=profs()[CUR];return p?p.name:CUR}
+function setCur(k){CUR=k;if(k)lsset('atlas.cur',k);else{store['k:atlas.cur']='';try{localStorage.removeItem('atlas.cur')}catch(e){}}}
+function mistakesList(){var out=[];Object.keys(SETS).forEach(function(k){var q=SETS[k];if(!q.key)return;var p=load(k);q.items.forEach(function(it,i){if(p[it.n]&&p[it.n]!==it.a)out.push({set:q,it:it,idx:i,pick:p[it.n]})})});return out}
+function exportCode(){var pr=profs()[CUR];if(!pr)return '';var d={n:pr.name,h:pr.hash,p:{}};Object.keys(SETS).forEach(function(k){d.p[k]=load(k)});return btoa(unescape(encodeURIComponent(JSON.stringify(d))))}
+function importCode(c){var d=JSON.parse(decodeURIComponent(escape(atob(c.trim()))));if(!d||!d.n||!d.h)throw 0;var k=pkey(d.n),o=profs();o[k]={name:d.n,hash:d.h};lsset('atlas.profiles',JSON.stringify(o));var old=CUR;CUR=k;Object.keys(d.p||{}).forEach(function(id){if(SETS[id]){var cur=load(id),m=d.p[id];for(var q in m)cur[q]=m[q];save(id,cur)}});setCur(k)}
 function h(tag,attrs,kids){var e=document.createElement(tag);for(var k in (attrs||{})){if(k==='class')e.className=attrs[k];else if(k.slice(0,2)==='on')e.addEventListener(k.slice(2),attrs[k]);else if(attrs[k]!==false&&attrs[k]!=null)e.setAttribute(k,attrs[k])}
  (kids||[]).forEach(function(c){if(c==null||c===false)return;e.appendChild(typeof c==='string'?document.createTextNode(c):c)});return e}
 function top(title,sub,back){return h('div',{class:'atl-top'},[h('button',{type:'button',class:'atl-back','aria-label':'رجوع',onclick:back},['→']),h('div',{},[h('div',{class:'tt'},[title]),sub?h('div',{class:'ss'},[sub]):null])])}
 var state={view:'home',pos:0,sec:'',wrong:false};
 function go(v){state={view:v,pos:0,sec:'',wrong:false};render();window.scrollTo(0,0)}
 function render(){app.innerHTML='';var v=state.view;
- if(v.indexOf('quiz:')===0)app.appendChild(quiz(SETS[v.slice(5)]));
+ if(!CUR&&v!=='login'){v=state.view='login'}
+ if(v==='login')app.appendChild(loginView());
+ else if(v==='xfer')app.appendChild(xferView());
+ else if(v==='mist')app.appendChild(mistView());
+ else if(v.indexOf('quiz:')===0)app.appendChild(quiz(SETS[v.slice(5)]));
  else if(v.indexOf('pg:')===0)app.appendChild(pages(v.slice(3)));
  else if(v.indexOf('sub:')===0)app.appendChild(subject(v.slice(4)));
  else app.appendChild(home())}
@@ -50,7 +65,49 @@ function home(){
   var info=[q?q+' questions':'',s.pages.length?s.pages.length+' files':''].filter(Boolean).join(' · ');
   wrap.appendChild(h('button',{type:'button',class:'atl-card',onclick:function(){go('sub:'+s.id)}},[ico(s.name.slice(0,3)),h('span',{},[h('div',{class:'t'},[s.name]),h('div',{class:'s'},[info])])]))});
  wrap.appendChild(h('div',{class:'atl-foot'},['المحتوى كله من ملفات الدفعة. الأسئلة اللي ملفها فيه مفتاح إجابات بس هي اللي بتتصحح.']));
+ var ml=mistakesList();
+ var bar=h('div',{class:'atl-user'},[h('span',{},['المستخدم: ',h('b',{},[dispName()])]),h('span',{},[h('button',{type:'button',class:'atl-lnk',onclick:function(){go('xfer')}},['كود النقل']),' · ',h('button',{type:'button',class:'atl-lnk',onclick:function(){setCur('');go('login')}},['تبديل'])])]);
+ var mc=h('button',{type:'button',class:'atl-card',onclick:function(){go('mist')}},[ico('X'),h('span',{style:'flex:1'},[h('div',{class:'t'},['أخطائي']),h('div',{class:'s'},[ml.length?ml.length+' سؤال غلط':'مفيش أخطاء لسه'])]),h('span',{class:'atl-tag'+(ml.length?' warn':'')},[String(ml.length)])]);
+ wrap.insertBefore(mc,wrap.children[1]);wrap.insertBefore(bar,wrap.firstChild);
  var f=h('div');f.appendChild(hero);f.appendChild(wrap);return f}
+function loginView(){
+ var nm=h('input',{class:'atl-in',type:'text',placeholder:'الاسم',autocomplete:'off',maxlength:'30'});
+ var pn=h('input',{class:'atl-in',type:'password',inputmode:'numeric',placeholder:'PIN (4 أرقام على الأقل)',autocomplete:'off',maxlength:'12'});
+ var msg=h('div',{class:'atl-note warn',style:'display:none'});
+ function say(t){msg.textContent=t;msg.style.display='block'}
+ var ta=h('textarea',{class:'atl-in',rows:'3',placeholder:'الصق كود النقل هنا'});
+ var w=h('div',{class:'atl-wrap',style:'padding-top:16px'},[
+  h('h2',{},['ادخل باسمك']),
+  h('p',{class:'atl-sm'},['اكتب اسمك وPIN. لو الاسم جديد هيتعمل ملف ليك، ولو موجود هيتفتح بنفس الـPIN. تقدمك بيتحفظ باسمك على الجهاز ده.']),
+  nm,pn,msg,
+  h('button',{type:'button',class:'atl-btn p',style:'width:100%;margin-top:8px',onclick:function(){
+   var n=nm.value.trim(),p=pn.value.trim();
+   if(!n){say('اكتب الاسم');return}
+   if(!/^[0-9]{4,12}$/.test(p)){say('الـPIN لازم يكون أرقام فقط، 4 على الأقل');return}
+   sha(pkey(n)+'|'+p).then(function(hs){var o=profs(),k=pkey(n);
+    if(o[k]){if(o[k].hash!==hs){say('الـPIN غلط للاسم ده');return}}
+    else{o[k]={name:n,hash:hs};lsset('atlas.profiles',JSON.stringify(o))}
+    setCur(k);go('home')})}},['دخول']),
+  h('button',{type:'button',class:'atl-btn',style:'width:100%;margin-top:8px',onclick:function(){setCur('~guest');go('home')}},['كمل بدون اسم (ضيف)']),
+  h('h2',{style:'margin-top:22px'},['عندك كود نقل من جهاز تاني؟']),ta,
+  h('button',{type:'button',class:'atl-btn',style:'width:100%;margin-top:8px',onclick:function(){try{importCode(ta.value);go('home')}catch(e){say('الكود مش صحيح')}}},['استيراد'])]);
+ var d=h('div');d.appendChild(h('div',{class:'atl-hero'},[h('div',{class:'atl-brand'},[h('b',{},['Atlas'])]),h('p',{},['مراجعة العملي'])]));d.appendChild(w);return d}
+function xferView(){
+ var code=exportCode();
+ var ta=h('textarea',{class:'atl-in',rows:'6',readonly:'readonly'});ta.value=code||'ملف الضيف مفيهوش كود نقل';
+ var w=h('div',{class:'atl-wrap',style:'padding-top:16px'},[
+  h('p',{class:'atl-sm'},['التقدم محفوظ على الجهاز ده بس. عشان تنقله لجهاز تاني: انسخ الكود ده وفي الجهاز التاني اختار "استيراد" من شاشة الدخول. الكود فيه تقدمك، فاحتفظ بيه لنفسك.']),ta,
+  h('button',{type:'button',class:'atl-btn p',style:'width:100%;margin-top:8px',onclick:function(){ta.select();try{navigator.clipboard.writeText(ta.value)}catch(e){document.execCommand('copy')}this.textContent='اتنسخ'}},['نسخ الكود'])]);
+ var d=h('div');d.appendChild(top('كود النقل',null,function(){go('home')}));d.appendChild(w);return d}
+function mistView(){
+ var ml=mistakesList(),w=h('div',{class:'atl-wrap',style:'padding-top:14px'});
+ if(!ml.length)w.appendChild(h('div',{class:'atl-note ok'},['مفيش أخطاء. الأسئلة اللي ليها مفتاح إجابات بس هي اللي بتتحسب.']));
+ ml.forEach(function(m){var it=m.it,L2='ABCDE';
+  var c=h('div',{class:'atl-q'},[h('div',{class:'atl-qm'},[h('span',{},[m.set.title+' · Question '+it.n])]),h('p',{class:'atl-qt'},[it.q])]);
+  it.o.forEach(function(o,i){var l=L2[i],cls='atl-o';if(l===it.a)cls+=' ok';else if(l===m.pick)cls+=' bad';c.appendChild(h('div',{class:cls},[h('span',{class:'l'},[l]),h('span',{},[o])]))});
+  c.appendChild(h('button',{type:'button',class:'atl-btn p',style:'width:100%;margin-top:8px',onclick:function(){var p=load(m.set.id);delete p[it.n];save(m.set.id,p);state={view:'quiz:'+m.set.id,pos:m.idx,sec:'',wrong:false};render();window.scrollTo(0,0)}},['حاول تاني']));
+  w.appendChild(c)});
+ var d=h('div');d.appendChild(top('أخطائي',ml.length+' سؤال',function(){go('home')}));d.appendChild(w);return d}
 function subject(id){var s=subj(id),w=h('div',{class:'atl-wrap'});
  if(s.quizzes.length)w.appendChild(h('h2',{},['أسئلة']));
  s.quizzes.forEach(function(k){var q=SETS[k],p=load(k),done=q.items.filter(function(i){return p[i.n]}).length;
