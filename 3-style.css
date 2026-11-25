@@ -648,3 +648,32 @@ html[data-theme="dark"] .atl6-b b{color:#8d9bb8}html[data-theme="dark"] .atl6-b 
 
 .atl-nl.rp .atl-nt{direction:rtl;font-weight:700;color:#7a5a16}
 html[data-theme="dark"] .atl-nl.rp .atl-nt{color:#e6c88f}
+
+/* v6: smoother tab switching (persistent tab bar, sliding gold dot, short direction-aware crossfade, scroll kept per tab) */
+.atl-tout-f{animation:atlTOf .09s ease-in both}.atl-tout-b{animation:atlTOb .09s ease-in both}
+.atl-tin-f{animation:atlTIf .26s cubic-bezier(.22,.61,.36,1) both}.atl-tin-b{animation:atlTIb .26s cubic-bezier(.22,.61,.36,1) both}
+@keyframes atlTOf{to{opacity:0;transform:translate3d(16px,0,0)}}
+@keyframes atlTOb{to{opacity:0;transform:translate3d(-16px,0,0)}}
+@keyframes atlTIf{from{opacity:0;transform:translate3d(-20px,0,0)}}
+@keyframes atlTIb{from{opacity:0;transform:translate3d(20px,0,0)}}
+.atl-tab.on::after,html[data-theme="dark"] .atl-tab.on::after{display:none}
+.atl-ti{position:absolute;left:0;bottom:3px;width:5px;height:5px;border-radius:50%;background:#c9a46a;pointer-events:none;transition:transform .32s cubic-bezier(.34,1.3,.64,1)}
+html[data-theme="dark"] .atl-ti{background:#e6c88f}
+.atl-tab{transition:color .2s;-webkit-tap-highlight-color:transparent}
+.atl-tab svg{transition:transform .18s ease}
+.atl-tab:active svg{transform:scale(.86)}
+.atl-tab .atl5-i path,.atl-tab .atl5-i circle{transition:fill .25s,stroke .25s}
+.atl-tab.atl-pop svg{animation:atlTabPop .38s cubic-bezier(.34,1.56,.64,1)}
+@keyframes atlTabPop{0%{transform:scale(.8)}60%{transform:scale(1.14)}100%{transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){.atl-ti,.atl-tab,.atl-tab svg{transition:none!important}.atl-tab.atl-pop svg{animation:none!important}}
+
+/* v7: hint compositor only while animating; no layout-affecting props animated */
+.atl-tout-f,.atl-tout-b,.atl-tin-f,.atl-tin-b{will-change:transform,opacity;backface-visibility:hidden}
+.atl-tabs{contain:layout style}
+body{overscroll-behavior-x:none}
+
+/* v7: desktop / iPad: hover + keyboard focus, tab bar kept to a comfortable width */
+@media (hover:hover){.atl-tab:hover{color:#12254a;background:rgba(201,164,106,.14)}html[data-theme="dark"] .atl-tab:hover{color:#fff;background:rgba(230,200,143,.12)}}
+.atl-tab:focus-visible{outline:2px solid #c9a46a;outline-offset:-2px}
+.atl-tab:focus:not(:focus-visible){outline:none}
+@media (min-width:900px){.atl-tabs{left:50%;right:auto;width:560px;transform:translateX(-50%);border-radius:18px 18px 0 0;border:1px solid #d9deea;border-bottom:0}html[data-theme="dark"] .atl-tabs{border-color:#25345a}}
