@@ -349,7 +349,7 @@ function acctView(){
  fg.classList.add('atl-fgs');wrap.appendChild(fg);
  var d=h('div');d.appendChild(pageHead('حسابك'));d.appendChild(wrap);d.appendChild(tabs('acct'));return d}
 var NEWS=[
- {d:'2026-11-25',t:'Favorites: tap the ⭐ on any question to save it, then open the ⭐ Favorites box on Home to review them (saved on this device and browser)',v:'fav'},
+ {d:'2026-11-25',t:'المفضلة: دوس على النجمة ⭐ في أي سؤال عشان تحفظه، وبعدين افتح خانة ⭐ المفضلة في الرئيسية عشان تراجعها (بتتحفظ على الجهاز والمتصفح ده)',v:'fav'},
  {d:'2026-11-25',t:'Histology practical MCQs added (45 questions, Histo)',v:'quiz:histo'},
  {d:'2026-11-25',t:'Daily goal: set it from the Account tab',v:'acct'},
  {d:'2026-11-25',t:'Badges and profile photo now follow your account on any device',v:'badges'}
