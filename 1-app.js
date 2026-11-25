@@ -19,8 +19,10 @@ var SETS={
  atlas:{id:'atlas',title:'Hematology: Drugs of Anemias',items:D.atlas,key:true},
  physio:{id:'physio',title:'Practical Physiology: Hematology MCQs',items:D.physio,key:false},
  para:{id:'para',title:'Para slides MCQ',items:D.para,key:false,images:seq('pq',60)},
- patho:{id:'patho',title:'Patho Practical MCQ',items:D.patho,key:false,images:seq('pt_q',38)}
+ patho:{id:'patho',title:'Patho Practical MCQ',items:D.patho,key:false,images:seq('pt_q',38)},
+ histo:{id:'histo',title:'Histology Practical MCQ',items:D.histo||[],key:true,images:(window.HQIMG||[]).map(F)}
 };
+(SETS.histo.items||[]).forEach(function(it){it.src='f'});
 ['physio','para','patho'].forEach(function(k){SETS[k].key=true;SETS[k].mixed=true;SETS[k].items.forEach(function(it){var a=(window.ANS&&ANS[k]&&ANS[k][it.n])||null;if(a){it.a=a[0];it.src=a[1].charAt(0);it.lo=a[1].length>1}})});
 ['micro','atlas'].forEach(function(k){SETS[k].items.forEach(function(it){it.src='f'})});
 function srcTag(it){return null}
@@ -32,7 +34,7 @@ var SUBJECTS=[
  {id:'para',name:'Para',quizzes:['para'],pages:[{id:'ps',title:'Practical slides Para',pages:seq('ps',7),note:'Department-approved slides with their facts.'},{id:'pc',title:'Para Practical Complete',pages:seq('pc',7),note:'Slide by slide worksheet.'}]},
  {id:'physio',name:'Physio',quizzes:['physio'],pages:[]},
  {id:'pharma',name:'Pharma',quizzes:['atlas'],pages:[]},
- {id:'histo',name:'Histo',quizzes:[],pages:[{id:'ph',title:'Histo slides (blood film and more)',pages:seq('ph',15),note:'All histology slide images with their notes.'}]},
+ {id:'histo',name:'Histo',quizzes:['histo'],pages:[{id:'ph',title:'Histo slides (blood film and more)',pages:seq('ph',15),note:'All histology slide images with their notes.'}]},
  {id:'anat',name:'Anatomy',quizzes:[],pages:[],soon:true},
  {id:'bio',name:'Biochem',quizzes:[],pages:[],soon:true}
 ];
@@ -251,6 +253,11 @@ function acctView(){
  var fg=pbtn(' dg','🗑️','نسيان الجهاز',function(){askYes('هيمسح كل الحسابات والتقدم من الجهاز ده بس (الصور بتفضل)، حسابك على السيرفر مش بيتمسح. متأكد؟',function(){try{var ks=[];for(var i=0;i<localStorage.length;i++)ks.push(localStorage.key(i));ks.forEach(function(k){if(k&&k.indexOf('atlas.')===0&&k.indexOf('atlas.av.')!==0)localStorage.removeItem(k)})}catch(e){}for(var k2 in store)delete store[k2];ISADM=false;setCur('');go('login')})});
  fg.classList.add('atl-fgs');wrap.appendChild(fg);
  var d=h('div');d.appendChild(pageHead('حسابك'));d.appendChild(wrap);d.appendChild(tabs('acct'));return d}
+var NEWS=[
+ {d:'2026-11-25',t:'Histology practical MCQs added (45 questions, Histo)'},
+ {d:'2026-11-25',t:'Daily goal: set it from the Account tab'},
+ {d:'2026-11-25',t:'Profile photo is now kept safe on this device'}
+];
 function home(){
  var ans=0;Object.keys(SETS).forEach(function(k){var p=load(k);SETS[k].items.forEach(function(it){if(p[it.n])ans++})});
  GOAL=goalTarget();var ml=mistakesList(),lg=lastGet(),gn=goalGet(),gp=Math.min(100,Math.round(gn*100/GOAL));
@@ -261,6 +268,7 @@ function home(){
  wrap.appendChild(h('button',{type:'button',class:'atl-card atl-rnd',onclick:function(){go('rmod')}},[h('span',{class:'atl-ico'},['🎲']),h('span',{style:'flex:1'},[h('div',{class:'t'},['اختبار عشوائي']),h('div',{class:'s'},['30 سؤال متنوع من كل المواد'])])]));
   if(lg){var ls=lg.v==='pcq'?null:SETS[lg.v.slice(5)],lt=lg.v==='pcq'?'Para Practical Complete':(ls?ls.title:'');wrap.appendChild(h('button',{type:'button',class:'atl-card atl-cont',onclick:function(){GOPOS=lg.p;go(lg.v)}},[h('span',{class:'atl-ico'},['▶️']),h('span',{style:'flex:1;min-width:0'},[h('div',{class:'t'},['كمّل من حيث وقفت']),h('div',{class:'s',style:'direction:ltr;text-align:start'},[lt+' · Q'+(lg.p+1)])])]))}
 wrap.appendChild(h('button',{type:'button',class:'atl-card',onclick:function(){go('mist')}},[ico('📝'),h('span',{style:'flex:1'},[h('div',{class:'t'},['أخطائي']),h('div',{class:'s'},[ml.length?ml.length+' سؤال غلط':'مفيش أخطاء لسه'])]),h('span',{class:'atl-tag'+(ml.length?' warn':'')},[String(ml.length)])]));
+ if(NEWS.length){var nw=h('div',{class:'atl-news'},[h('h3',{},['News'])]);NEWS.slice(0,3).forEach(function(x){nw.appendChild(h('div',{class:'atl-nl'},[h('span',{class:'atl-nd'},[x.d]),h('span',{class:'atl-nt'},[x.t])]))});wrap.appendChild(nw)}
  var f=h('div');f.appendChild(hero);f.appendChild(wrap);f.appendChild(tabs('home'));return f}
 function loginView(){
  var nm=h('input',{class:'atl-in',type:'text',placeholder:'مثال: أحمد محمد',autocomplete:'off',maxlength:'30','aria-label':'الاسم'});
