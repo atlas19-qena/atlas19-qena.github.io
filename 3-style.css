@@ -641,3 +641,7 @@ html[data-theme="dark"] .atl6-m.on.t5 svg path,html[data-theme="dark"] .atl6-m.o
 .atl6-toast{position:fixed;z-index:60;inset-inline:16px;bottom:calc(84px + env(safe-area-inset-bottom,0px));max-width:420px;margin:0 auto;padding:13px 16px;border-radius:16px;text-align:center;font-weight:800;font-size:14.5px;color:#14284b;background:linear-gradient(145deg,#f6e8c6,#e6c88f);box-shadow:0 10px 26px rgba(20,40,75,.3)}
 .atl6-toast.out{opacity:0;transform:translateY(10px);transition:opacity .35s,transform .35s}
 html[data-theme="dark"] .atl6-b b{color:#8d9bb8}html[data-theme="dark"] .atl6-b small{color:#7e8cab}html[data-theme="dark"] .atl6-b.on small{color:#e6c88f}
+
+.atl-nl.lk{cursor:pointer}
+.atl-nl.lk .atl-nt::after{content:' \203A';color:#c9a46a;font-weight:800}
+.atl-o{font:inherit;cursor:pointer}
