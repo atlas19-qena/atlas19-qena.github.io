@@ -682,3 +682,9 @@ body{overscroll-behavior-x:none}
 .atl-bd{display:inline-block;padding:3px 10px;border-radius:99px;font-size:12px;font-weight:700;background:#eef1f8;color:#42507a;direction:rtl}
 .atl-bd.rp{background:#e3f0ff;color:#1b4f9c}.atl-bd.fx{background:#e2f5e7;color:#1d7a3a}.atl-bd.rj{background:#fbe6e8;color:#a3283a}.atl-bd.op{background:#fff3d6;color:#8a6212}
 html[data-theme="dark"] .atl-bd{background:#22304f;color:#b7c4e6}html[data-theme="dark"] .atl-bd.rp{background:#173152;color:#9cc4ff}html[data-theme="dark"] .atl-bd.fx{background:#16361f;color:#8fdca4}html[data-theme="dark"] .atl-bd.rj{background:#3b1b22;color:#f1a1ad}html[data-theme="dark"] .atl-bd.op{background:#3b3216;color:#f0d28b}
+
+/* v9: toast stays visible wherever the page is scrolled */
+.atl-toast{position:fixed;left:50%;top:76px;transform:translateX(-50%);z-index:60;max-width:88vw;padding:12px 20px;border-radius:14px;background:#1d7a3a;color:#fff;font-weight:700;font-size:15px;box-shadow:0 8px 24px rgba(0,0,0,.25);direction:rtl;animation:atlToast .25s ease-out both}
+.atl-toast.bad{background:#a3283a}
+@keyframes atlToast{from{opacity:0;transform:translate(-50%,-10px)}}
+@media (prefers-reduced-motion:reduce){.atl-toast{animation:none}}
