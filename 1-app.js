@@ -94,7 +94,10 @@ var NAV=[];
 function navDir(v){var back=NAV.length>=2&&NAV[NAV.length-2]===v;if(back)NAV.length=NAV.length-1;else if(NAV[NAV.length-1]!==v)NAV.push(v);return back?'back':'fwd'}
 function stagger(root){if(RM.matches)return;var cs=root.querySelectorAll('.atl-card');for(var i=0;i<cs.length&&i<9;i++){cs[i].style.animationDelay=(0.04+i*0.045)+'s';cs[i].classList.add('atl-cin')}}
 function goBack(def){var p=NAV.length>=2?NAV[NAV.length-2]:'';if(p&&p!=='login')go(p);else go(def)}
+function tabGo(nx,d,from){TABY[from]=window.scrollY||0;window.__tab=nx;syncTabs();app.classList.add('atl-vt');if(app.firstChild)app.firstChild.classList.add('atl-tout-'+d);
+ setTimeout(function(){state={view:nx,pos:0,sec:'',wrong:false};renderCore();window.scrollTo(0,TABY[nx]||0);spawnFx();var nu=app.firstChild;if(nu)nu.classList.add('atl-tin-'+d);setTimeout(function(){app.classList.remove('atl-vt')},300)},90)}
 function go(v){var dir=navDir(v),gp=GOPOS;GOPOS=0;var nx={view:v,pos:gp,sec:'',wrong:false};
+ if(TABIX[v]!==undefined&&TABIX[state.view]!==undefined&&TABIX[v]!==TABIX[state.view]&&!RM.matches&&app.firstChild&&!app.classList.contains('atl-vt')){tabGo(v,TABIX[v]>TABIX[state.view]?'f':'b',state.view);return}
  if(RM.matches||!app.firstChild||app.classList.contains('atl-vt')){state=nx;render();window.scrollTo(0,0);return}
  app.classList.add('atl-vt');
  app.firstChild.classList.add(dir==='back'?'atl-out-b':'atl-out-f');
@@ -225,9 +228,15 @@ var GOAL=20;
 function goalTarget(){var n=parseInt(lsget('atlas.goalset.'+CUR),10);return n>=5&&n<=500?n:20}
 function goalSet(n){n=Math.max(5,Math.min(500,n|0));lsset('atlas.goalset.'+CUR,String(n));GOAL=n;render()}
 function answeredCount(id){var p;try{p=JSON.parse(lsget('atlas.p.'+CUR+'.'+id)||'{}')}catch(e){p={}}return Object.keys(p).length}
-function tabsEl(cur){var T=[['home','الرئيسية'],['study','المذاكرة'],['acct','حسابك']];return h('nav',{class:'atl-tabs','aria-label':'التنقل'},T.map(function(t){return h('button',{type:'button',class:'atl-tab'+(t[0]===cur?' on':''),'aria-current':t[0]===cur?'page':null,onclick:function(){if(t[0]!==cur)go(t[0])}},[tico(t[0]),h('span',{},[t[1]])])}))}
+function tabsEl(cur){var T=[['home','الرئيسية'],['study','المذاكرة'],['acct','حسابك']];var kids=T.map(function(t){return h('button',{type:'button',class:'atl-tab'+(t[0]===cur?' on':''),'data-t':t[0],'aria-current':t[0]===cur?'page':null,onclick:function(){if(t[0]!==window.__tab)go(t[0])}},[tico(t[0]),h('span',{},[t[1]])])});kids.push(h('i',{class:'atl-ti','aria-hidden':'true'}));return h('nav',{class:'atl-tabs','aria-label':'التنقل'},kids)}
+function tabDot(n,c,now){var b=n.querySelector('.atl-tab[data-t="'+c+'"]'),d=n.querySelector('.atl-ti');if(!b||!d)return;var r=b.getBoundingClientRect(),nr=n.getBoundingClientRect();if(now)d.style.transition='none';d.style.transform='translateX('+Math.round(r.left-nr.left+r.width/2-2.5)+'px)';if(now){void d.offsetWidth;d.style.transition=''}}
+var TABIX={home:0,study:1,acct:2},TABY={};
 function tabs(cur){window.__tab=cur;return document.createComment('tabs')}
-function syncTabs(){var o=document.querySelector('body > .atl-tabs');if(o)o.parentNode.removeChild(o);if(window.__tab&&CUR)document.body.appendChild(tabsEl(window.__tab))}
+function syncTabs(){var o=document.querySelector('body > .atl-tabs'),c=window.__tab;
+ if(!c||!CUR){if(o&&o.parentNode)o.parentNode.removeChild(o);return}
+ if(!o){o=tabsEl(c);document.body.appendChild(o);tabDot(o,c,true);return}
+ [].forEach.call(o.querySelectorAll('.atl-tab'),function(b){var on=b.getAttribute('data-t')===c,was=b.classList.contains('on');b.classList.toggle('on',on);if(on)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');if(on&&!was&&!RM.matches){b.classList.remove('atl-pop');void b.offsetWidth;b.classList.add('atl-pop')}});
+ tabDot(o,c,false)}
 function rmodView(){var w=h('div',{class:'atl-wrap atl-tw',style:'padding-top:14px'});
  w.appendChild(h('h2',{},['اختار الموديول']));
  w.appendChild(h('button',{type:'button',class:'atl-card atl-md',onclick:function(){go('rtype')}},[h('div',{class:'atl-mdi'}),h('div',{class:'atl-mdt'},[h('div',{class:'atl-mdn'},['Blood Module']),h('div',{class:'atl-mds'},['اختبار عشوائي'])])]));
@@ -746,4 +755,13 @@ snapIt();applyQE(qeCache());applyTheme();render();bgPull();refreshQE();
 /* swipe: left = next, right = previous (nav is ltr) */
 (function(){var x0=null,y0=0;app.addEventListener('touchstart',function(e){var t=e.touches[0];x0=t.clientX;y0=t.clientY},{passive:true});
 app.addEventListener('touchend',function(e){if(x0===null)return;var t=e.changedTouches[0],dx=t.clientX-x0,dy=t.clientY-y0;x0=null;if(Math.abs(dx)<70||Math.abs(dx)<Math.abs(dy)*1.5)return;if(document.activeElement&&/INPUT|TEXTAREA/.test(document.activeElement.tagName))return;var b=app.querySelector('.atl-pn');if(!b)return;var bt=b.querySelectorAll('.atl-btn');if(bt.length<2)return;var tgt=dx<0?bt[1]:bt[0];if(!tgt.disabled)tgt.click()},{passive:true})})();
+/* v7: swipe between tabs (passive listeners, horizontal intent only, RTL order: swipe left = next tab) */
+(function(){var sx=0,sy=0,st=0,ok=false;
+ function hs(e){for(var n=e;n&&n!==document.body;n=n.parentNode){if(n.nodeType!==1)continue;var t=n.tagName;if(t==='INPUT'||t==='TEXTAREA'||t==='SELECT'||t==='CANVAS')return true;if(n.scrollWidth>n.clientWidth+4){var o=getComputedStyle(n).overflowX;if(o==='auto'||o==='scroll')return true}}return false}
+ document.addEventListener('touchstart',function(e){ok=false;if(e.touches.length!==1||!window.__tab||RM.matches||TABIX[state.view]===undefined||window.__tab!==state.view||app.classList.contains('atl-vt'))return;if(hs(e.target))return;if(getSelection&&String(getSelection()))return;sx=e.touches[0].clientX;sy=e.touches[0].clientY;st=Date.now();ok=true},{passive:true});
+ document.addEventListener('touchend',function(e){if(!ok)return;ok=false;var t=e.changedTouches[0],dx=t.clientX-sx,dy=t.clientY-sy;if(Date.now()-st>700||Math.abs(dx)<70||Math.abs(dx)<Math.abs(dy)*2)return;var i=TABIX[state.view]+(dx<0?1:-1);var names=['home','study','acct'];if(i<0||i>2)return;go(names[i])},{passive:true});
+})();
+
+/* v7: keyboard on the tab bar (arrows move between tabs, RTL order: Left = next) */
+document.addEventListener('keydown',function(e){var t=e.target;if(!t||!t.classList||!t.classList.contains('atl-tab')||e.altKey||e.ctrlKey||e.metaKey)return;var k=e.key,d=k==='ArrowLeft'?1:k==='ArrowRight'?-1:0;if(!d)return;var i=TABIX[window.__tab]+d;if(i<0||i>2)return;e.preventDefault();var names=['home','study','acct'];go(names[i]);setTimeout(function(){if(window.__tab!==names[i])return;var b=document.querySelector('body > .atl-tabs .atl-tab[data-t="'+names[i]+'"]');if(b)b.focus({preventScroll:true})},420)});
 })();
