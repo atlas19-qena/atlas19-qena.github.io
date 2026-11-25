@@ -93,6 +93,7 @@ var RM=(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)'))||{mat
 var NAV=[];
 function navDir(v){var back=NAV.length>=2&&NAV[NAV.length-2]===v;if(back)NAV.length=NAV.length-1;else if(NAV[NAV.length-1]!==v)NAV.push(v);return back?'back':'fwd'}
 function stagger(root){if(RM.matches)return;var cs=root.querySelectorAll('.atl-card');for(var i=0;i<cs.length&&i<9;i++){cs[i].style.animationDelay=(0.04+i*0.045)+'s';cs[i].classList.add('atl-cin')}}
+function goBack(def){var p=NAV.length>=2?NAV[NAV.length-2]:'';if(p&&p!=='login')go(p);else go(def)}
 function go(v){var dir=navDir(v),gp=GOPOS;GOPOS=0;var nx={view:v,pos:gp,sec:'',wrong:false};
  if(RM.matches||!app.firstChild||app.classList.contains('atl-vt')){state=nx;render();window.scrollTo(0,0);return}
  app.classList.add('atl-vt');
@@ -409,7 +410,7 @@ function xferView(){
 function subjOfSet(k){var r=null;SUBJECTS.forEach(function(x){if(x.quizzes.indexOf(k)>=0)r=x});return r}
 var MQ=null;
 function mqStart(sid){var ml=mistakesList().filter(function(m){if(!sid)return true;var x=subjOfSet(m.set.id);return x&&x.id===sid});if(!ml.length)return;MQ={l:ml.map(function(m){return {s:m.set.id,n:m.it.n}}),i:0,p:'',ok:0,bad:0,sid:sid||''};go('mqz')}
-function mqView(){var w=h('div',{class:'atl-wrap',style:'padding-top:14px'}),back=function(){MQ=null;go('mist:prac')};
+function mqView(){var w=h('div',{class:'atl-wrap',style:'padding-top:14px'}),back=function(){MQ=null;goBack('mist:prac')};
  if(!MQ||!MQ.l.length){var d0=h('div');d0.appendChild(top('اختبار أخطائي',null,back));return d0}
  if(MQ.i>=MQ.l.length){w.appendChild(h('div',{class:'atl-note ok'},['خلصت الاختبار: '+MQ.ok+' صح من '+MQ.l.length+(MQ.bad?'. اللي غلطت فيه لسه في أخطائي.':'. كل أخطائك اتصححت!')]));w.appendChild(h('button',{type:'button',class:'atl-btn p',style:'width:100%',onclick:back},['رجوع لأخطائي']));var d1=h('div');d1.appendChild(top('اختبار أخطائي',MQ.l.length+' سؤال',back));d1.appendChild(w);return d1}
  var cur=MQ.l[MQ.i],set=SETS[cur.s],it=set.items.filter(function(x){return x.n===cur.n})[0],L2='ABCDE',pk=MQ.p;
@@ -421,11 +422,11 @@ function mqView(){var w=h('div',{class:'atl-wrap',style:'padding-top:14px'}),bac
  var d=h('div');d.appendChild(top('اختبار أخطائي',(MQ.i+1)+' / '+MQ.l.length,function(){askYes('تخرج من الاختبار؟',back)}));d.appendChild(w);return d}
 function mistMods(){var all=mistakesList(),w=h('div',{class:'atl-wrap',style:'padding-top:14px'});
  w.appendChild(h('button',{type:'button',class:'atl-card',onclick:function(){go('mist:mod')}},[ico('🩸'),h('span',{style:'flex:1'},[h('div',{class:'t'},['Blood Module']),h('div',{class:'s'},[all.length?all.length+' سؤال غلط':'مفيش أخطاء'])]),h('span',{class:'atl-tag'+(all.length?' warn':'')},[String(all.length)])]));
- var d=h('div');d.appendChild(top('أخطائي','اختار الموديول',function(){go('home')}));d.appendChild(w);return d}
+ var d=h('div');d.appendChild(top('أخطائي','اختار الموديول',function(){goBack('home')}));d.appendChild(w);return d}
 function mistParts(){var all=mistakesList(),w=h('div',{class:'atl-wrap',style:'padding-top:14px'});
  w.appendChild(h('button',{type:'button',class:'atl-card',onclick:function(){go('mist:prac')}},[ico('🔬'),h('span',{style:'flex:1'},[h('div',{class:'t'},['Practical · العملي']),h('div',{class:'s'},[all.length?all.length+' سؤال غلط':'مفيش أخطاء'])]),h('span',{class:'atl-tag'+(all.length?' warn':'')},[String(all.length)])]));
  w.appendChild(h('div',{class:'atl-card soon'},[ico('📝'),h('span',{style:'flex:1'},[h('div',{class:'t'},['Final · النهائي']),h('div',{class:'s'},['قريباً'])])]));
- var d=h('div');d.appendChild(top('Blood Module','اختار الجزء',function(){go('mist')}));d.appendChild(w);return d}
+ var d=h('div');d.appendChild(top('Blood Module','اختار الجزء',function(){goBack('mist')}));d.appendChild(w);return d}
 function mistView(sid){
  if(!sid)return mistMods();if(sid==='mod')return mistParts();
  var qsid=sid==='prac'?'':sid;sid=qsid;
@@ -433,7 +434,7 @@ function mistView(sid){
  if(!sid){var dd=h('div');if(all.length)w.appendChild(h('button',{type:'button',class:'atl-btn p',style:'width:100%;margin-bottom:10px',onclick:function(){mqStart('')}},['اختبار على كل أخطائي ('+all.length+')']));
   SUBJECTS.forEach(function(x){if(!x.quizzes.length)return;var n=all.filter(function(m){return subjOfSet(m.set.id)===x}).length;
    w.appendChild(h('button',{type:'button',class:'atl-card',onclick:function(){go('mist:'+x.id)}},[ico(x.name.slice(0,3)),h('span',{style:'flex:1'},[h('div',{class:'t'},[x.name]),h('div',{class:'s'},[n?n+' سؤال غلط':'مفيش أخطاء'])]),h('span',{class:'atl-tag'+(n?' warn':'')},[String(n)])]))});
-  dd.appendChild(top('Practical · أخطائي',all.length+' سؤال',function(){go('mist:mod')}));dd.appendChild(w);return dd}
+  dd.appendChild(top('Practical · أخطائي',all.length+' سؤال',function(){goBack('mist:mod')}));dd.appendChild(w);return dd}
  if(ml.length)w.appendChild(h('button',{type:'button',class:'atl-btn p',style:'width:100%;margin-bottom:10px',onclick:function(){mqStart(sid)}},['اختبار على أخطاء المادة دي ('+ml.length+')']));
  if(!ml.length)w.appendChild(h('div',{class:'atl-note ok'},['مفيش أخطاء هنا. الأسئلة اللي ليها إجابات بس هي اللي بتتحسب.']));
  ml.forEach(function(m){var it=m.it,L2='ABCDE';
@@ -441,7 +442,7 @@ function mistView(sid){
   it.o.forEach(function(o,i){var l=L2[i],cls='atl-o';if(l===it.a)cls+=' ok';else if(l===m.pick)cls+=' bad';c.appendChild(h('div',{class:cls},[h('span',{class:'l'},[l]),h('span',{},[o])]))});
   c.appendChild(h('button',{type:'button',class:'atl-btn p',style:'width:100%;margin-top:8px',onclick:function(){var p=load(m.set.id);delete p[it.n];save(m.set.id,p);if(bdOn()){var gx=bdGet();gx.fx=(gx.fx||0)+1;bdSet(gx);bdCheck(gx,false)}state={view:'quiz:'+m.set.id,pos:m.idx,sec:'',wrong:false};render();window.scrollTo(0,0)}},['حاول تاني']));
   w.appendChild(c)});
- var d=h('div');d.appendChild(top('أخطائي'+(sid?' · '+subj(sid).name:''),ml.length+' سؤال',function(){go('mist:prac')}));d.appendChild(w);return d}
+ var d=h('div');d.appendChild(top('أخطائي'+(sid?' · '+subj(sid).name:''),ml.length+' سؤال',function(){goBack('mist:prac')}));d.appendChild(w);return d}
 function subject(id){var s=subj(id),w=h('div',{class:'atl-wrap'});
  var SI3={patho:'🩸',micro:'🦠',para:'🪱',physio:'❤️',pharma:'💊',histo:'🧫',anat:'🦴',bio:'⚗️'};
  var tq=s.quizzes.reduce(function(a,k){return a+SETS[k].items.length},0),td=s.quizzes.reduce(function(a,k){var p=load(k);return a+SETS[k].items.filter(function(i){return p[i.n]}).length},0);
