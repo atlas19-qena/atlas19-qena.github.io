@@ -74,7 +74,7 @@ function adminView(){var w=h('div',{class:'atl-wrap',style:'padding-top:14px'},[
   var us=r.users||[];d.querySelector('.ss')&&(d.querySelector('.ss').textContent=us.length+' مستخدم');
   var tt=us.length;w.appendChild(h('div',{class:'atl-note ok'},[tt+' مستخدم مسجل']));
   us.forEach(function(u){var tot=0,parts=[];Object.keys(u.counts||{}).forEach(function(k){var c=u.counts[k];tot+=c;if(c&&SETS[k])parts.push(k+' '+c)});
-   w.appendChild(h('div',{class:'atl-q'},[h('div',{class:'atl-qm'},[h('span',{},[u.name+(u.admin?' · أدمن':'')]),h('span',{},['آخر ظهور: '+ago(u.last_seen)])]),h('p',{class:'atl-qt',style:'font-size:14px'},['جاوب '+tot+' سؤال · أخطاء '+(u.mistakes||0)+' · دخل '+u.logins+' مرة']),parts.length?h('div',{class:'atl-sm'},[parts.join(' · ')]):null]))})}).catch(function(){w.innerHTML='';w.appendChild(h('div',{class:'atl-note bad'},['مفيش اتصال']))});
+   w.appendChild(h('div',{class:'atl-q'},[h('div',{class:'atl-qm'},[h('span',{},[u.name+(u.admin?' · أدمن':'')]),h('span',{},['آخر ظهور: '+(u.hidden?'مخفي':ago(u.last_seen))])]),h('p',{class:'atl-qt',style:'font-size:14px'},['جاوب '+tot+' سؤال · أخطاء '+(u.mistakes||0)+(u.hidden?'':' · دخل '+u.logins+' مرة')]),parts.length?h('div',{class:'atl-sm'},[parts.join(' · ')]):null]))})}).catch(function(){w.innerHTML='';w.appendChild(h('div',{class:'atl-note bad'},['مفيش اتصال']))});
  return d}
 function h(tag,attrs,kids){var e=document.createElement(tag);for(var k in (attrs||{})){if(k==='class')e.className=attrs[k];else if(k.slice(0,2)==='on')e.addEventListener(k.slice(2),attrs[k]);else if(attrs[k]!==false&&attrs[k]!=null)e.setAttribute(k,attrs[k])}
  (kids||[]).forEach(function(c){if(c==null||c===false)return;e.appendChild(typeof c==='string'?document.createTextNode(c):c)});return e}
