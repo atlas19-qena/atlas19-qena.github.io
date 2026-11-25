@@ -128,38 +128,53 @@ function ico(t){return h('span',{class:'atl-ico'},[t])}
 function home(){
  var total=Object.keys(SETS).reduce(function(a,k){return a+SETS[k].items.length},0);
  var ready=SUBJECTS.filter(function(s){return !s.soon}).length;
- var hero=h('div',{class:'atl-hero'},[brandEl(),h('p',{},['مراجعة العملي · موديول الهيماتولوجي'])]);
+ var ans=0;Object.keys(SETS).forEach(function(k){var p=load(k);SETS[k].items.forEach(function(it){if(p[it.n])ans++})});
+ var hero=h('div',{class:'atl-hero atl-hh'},[h('div',{class:'atl-hr'},[brandEl(),thBtn()]),h('div',{class:'atl-hg'},[h('small',{},['أهلاً يا '+dispName()+' 👋']),h('p',{},['مراجعة العملي · موديول الهيماتولوجي'])])]);
  var wrap=h('div',{class:'atl-wrap'},[
-  h('div',{class:'atl-stats'},[h('div',{class:'atl-stat'},[h('b',{},[ready+' / '+SUBJECTS.length]),h('span',{},['مواد جاهزة'])]),h('div',{class:'atl-stat'},[h('b',{},[String(total)]),h('span',{},['سؤال عملي'])])]),
+  h('div',{class:'atl-stats atl-stats3'},[h('div',{class:'atl-stat'},[h('b',{},[ready+' / '+SUBJECTS.length]),h('span',{},['مواد جاهزة'])]),h('div',{class:'atl-stat'},[h('b',{},[String(total)]),h('span',{},['سؤال عملي'])]),h('div',{class:'atl-stat'},[h('b',{},[String(ans)]),h('span',{},['اتحلّ'])])]),
   h('h2',{},['المواد'])]);
- wrap.insertBefore(h('button',{type:'button',class:'atl-card',onclick:function(){RQ=buildRnd();go('rnd')}},[ico('30'),h('span',{style:'flex:1'},[h('div',{class:'t'},['اختبار عشوائي']),h('div',{class:'s'},['30 سؤال متنوع من كل المواد'])])]),wrap.children[1]);
+ wrap.insertBefore(h('button',{type:'button',class:'atl-card atl-rnd',onclick:function(){RQ=buildRnd();go('rnd')}},[h('span',{class:'atl-ico'},['🎲']),h('span',{style:'flex:1'},[h('div',{class:'t'},['اختبار عشوائي']),h('div',{class:'s'},['30 سؤال متنوع من كل المواد'])])]),wrap.children[1]);
+ var sg=h('div',{class:'atl-sg'});wrap.appendChild(sg);
+ var SI={patho:['🩸','باثولوجي'],micro:['🦠','ميكروبيولوجي'],para:['🪱','طفيليات'],physio:['❤️','فسيولوجي'],pharma:['💊','فارماكولوجي'],histo:['🧫','هستولوجي'],anat:['🦴','تشريح'],bio:['⚗️','كيمياء حيوية']};
+ var mlx=mistakesList();
  SUBJECTS.forEach(function(s){
-  if(s.soon){wrap.appendChild(h('div',{class:'atl-card',style:'opacity:.6'},[ico(s.name.slice(0,3)),h('span',{class:'t'},[s.name]),h('span',{class:'atl-tag warn'},['Soon'])]));return}
+  var ic=SI[s.id]||['📘',''];
+  if(s.soon){sg.appendChild(h('div',{class:'atl-card atl-sc soon atl-sc-'+s.id},[h('span',{class:'atl-st'},[ic[0]]),h('div',{class:'atl-sn'},[s.name]),h('div',{class:'atl-sa'},[ic[1]]),h('span',{class:'atl-sp'},['قريباً'])]));return}
   var q=s.quizzes.reduce(function(a,k){return a+SETS[k].items.length},0);
-  var info=[q?q+' questions':'',s.pages.length?s.pages.length+' files':''].filter(Boolean).join(' · ');
-  wrap.appendChild(h('button',{type:'button',class:'atl-card',onclick:function(){go('sub:'+s.id)}},[ico(s.name.slice(0,3)),h('span',{},[h('div',{class:'t'},[s.name]),h('div',{class:'s'},[info])])]))});
+  var dn=s.quizzes.reduce(function(a,k){var p=load(k);return a+SETS[k].items.filter(function(it){return p[it.n]}).length},0);
+  var wr=mlx.filter(function(m){return subjOfSet(m.set.id)===s}).length;
+  var pc=q?Math.round(dn*100/q):0;
+  var kids=[h('span',{class:'atl-st'},[ic[0]]),h('div',{class:'atl-sn'},[s.name]),h('div',{class:'atl-sa'},[ic[1]])];
+  if(q){kids.push(h('div',{class:'atl-bar'},[h('i',{style:'width:'+pc+'%'})]));kids.push(h('div',{class:'atl-sp'},[h('span',{},[dn?'جاوبت '+dn+' من '+q:'لسه مبدأتش · '+q+' سؤال']),wr?h('em',{class:'atl-wb'},[wr+' غلط']):null]))}
+  else kids.push(h('div',{class:'atl-sp'},[s.pages.length?'شرائح وصور':'']));
+  sg.appendChild(h('button',{type:'button',class:'atl-card atl-sc atl-sc-'+s.id,onclick:function(){go('sub:'+s.id)}},kids))});
 
  var ml=mistakesList();
- var bar=h('div',{class:'atl-user'},[h('span',{},['المستخدم: ',h('b',{},[dispName()])]),h('span',{},[h('button',{type:'button',class:'atl-lnk',onclick:function(){go('xfer')}},['كود النقل']),' · ',h('button',{type:'button',class:'atl-lnk',onclick:function(){ISADM=false;setCur('');go('login')}},['تبديل']),' · ',h('button',{type:'button',class:'atl-lnk',onclick:function(){askYes('هيمسح كل الحسابات والتقدم من الجهاز ده بس، حسابك على السيرفر مش بيتمسح. متأكد؟',function(){try{var ks=[];for(var i=0;i<localStorage.length;i++)ks.push(localStorage.key(i));ks.forEach(function(k){if(k&&k.indexOf('atlas.')===0)localStorage.removeItem(k)})}catch(e){}for(var k2 in store)delete store[k2];ISADM=false;setCur('');go('login')})}},['نسيان الجهاز'])])]);
- var mc=h('button',{type:'button',class:'atl-card',onclick:function(){go('mist')}},[ico('X'),h('span',{style:'flex:1'},[h('div',{class:'t'},['أخطائي']),h('div',{class:'s'},[ml.length?ml.length+' سؤال غلط':'مفيش أخطاء لسه'])]),h('span',{class:'atl-tag'+(ml.length?' warn':'')},[String(ml.length)])]);
- if(ISADM)wrap.insertBefore(h('button',{type:'button',class:'atl-card',onclick:function(){go('admin')}},[ico('ADM'),h('span',{style:'flex:1'},[h('div',{class:'t'},['لوحة الأدمن']),h('div',{class:'s'},['مين دخل الموقع'])])]),wrap.children[1]);
- bar.appendChild(thBtn());wrap.insertBefore(mc,wrap.children[1]);wrap.insertBefore(bar,wrap.firstChild);
+ var dn0=dispName(),pbtn=function(cls,ic,t,fn){return h('button',{type:'button',class:'atl-pb'+cls,onclick:fn},[h('i',{},[ic]),h('span',{},[t])])};
+ var bar=h('div',{class:'atl-pf'},[h('div',{class:'atl-pr'},[h('div',{class:'atl-av'},[(dn0.trim().charAt(0)||'؟').toUpperCase()]),h('div',{class:'atl-pn2'},[h('small',{},['مسجّل دخول باسم']),h('b',{},[dn0])])]),h('div',{class:'atl-pa'},[pbtn('','📋','كود النقل',function(){go('xfer')}),pbtn('','🔁','تبديل',function(){ISADM=false;setCur('');go('login')}),pbtn(' dg','🗑️','نسيان الجهاز',function(){askYes('هيمسح كل الحسابات والتقدم من الجهاز ده بس، حسابك على السيرفر مش بيتمسح. متأكد؟',function(){try{var ks=[];for(var i=0;i<localStorage.length;i++)ks.push(localStorage.key(i));ks.forEach(function(k){if(k&&k.indexOf('atlas.')===0)localStorage.removeItem(k)})}catch(e){}for(var k2 in store)delete store[k2];ISADM=false;setCur('');go('login')})})])]);
+ var mc=h('button',{type:'button',class:'atl-card',onclick:function(){go('mist')}},[ico('📝'),h('span',{style:'flex:1'},[h('div',{class:'t'},['أخطائي']),h('div',{class:'s'},[ml.length?ml.length+' سؤال غلط':'مفيش أخطاء لسه'])]),h('span',{class:'atl-tag'+(ml.length?' warn':'')},[String(ml.length)])]);
+ if(ISADM)wrap.insertBefore(h('button',{type:'button',class:'atl-card',onclick:function(){go('admin')}},[ico('🛡️'),h('span',{style:'flex:1'},[h('div',{class:'t'},['لوحة الأدمن']),h('div',{class:'s'},['مين دخل الموقع'])])]),wrap.children[1]);
+ wrap.insertBefore(mc,wrap.querySelector('h2'));wrap.insertBefore(bar,wrap.firstChild);
  var f=h('div');f.appendChild(hero);f.appendChild(wrap);return f}
 function loginView(){
- var nm=h('input',{class:'atl-in',type:'text',placeholder:'الاسم',autocomplete:'off',maxlength:'30'});
- var pn=h('input',{class:'atl-in',type:'password',inputmode:'numeric',placeholder:'PIN (4 أرقام على الأقل)',autocomplete:'off',maxlength:'12'});
+ var nm=h('input',{class:'atl-in',type:'text',placeholder:'مثال: أحمد محمد',autocomplete:'off',maxlength:'30','aria-label':'الاسم'});
+ var pn=h('input',{class:'atl-in',type:'password',inputmode:'numeric',placeholder:'4 أرقام على الأقل',autocomplete:'off',maxlength:'12','aria-label':'الرقم السري'});
  var mode='in',goBtn=null;
- var chIn=h('button',{type:'button',class:'atl-chip','aria-pressed':'true'},['دخول']),chUp=h('button',{type:'button',class:'atl-chip','aria-pressed':'false'},['حساب جديد']);
+ var chIn=h('button',{type:'button',class:'atl-segb','aria-pressed':'true'},['دخول']),chUp=h('button',{type:'button',class:'atl-segb','aria-pressed':'false'},['حساب جديد']);
  function setMode(m){mode=m;chIn.setAttribute('aria-pressed',String(m==='in'));chUp.setAttribute('aria-pressed',String(m==='up'));if(goBtn)goBtn.textContent=m==='in'?'دخول':'إنشاء الحساب';msg.style.display='none'}
  chIn.addEventListener('click',function(){setMode('in')});chUp.addEventListener('click',function(){setMode('up')});
  var msg=h('div',{class:'atl-note warn',style:'display:none'});
  function say(t){msg.textContent=t;msg.style.display='block'}
  var ta=h('textarea',{class:'atl-in',rows:'3',placeholder:'الصق كود النقل هنا'});
- var w=h('div',{class:'atl-wrap',style:'padding-top:16px'},[
-  h('h2',{},['ادخل باسمك']),
+ function fld(lbl,ic,inp,extra){return h('div',{class:'atl-fld'},[h('div',{class:'atl-fl'},[h('i',{},[ic]),lbl]),h('div',{class:'atl-fw'},[inp,extra||null])])}
+ var eye=h('button',{type:'button',class:'atl-eye','aria-label':'إظهار أو إخفاء الرقم السري',onclick:function(){var sh=pn.type==='password';pn.type=sh?'text':'password';this.textContent=sh?'🙈':'👁️';pn.focus()}},['👁️']);
+ nm.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();pn.focus()}});
+ pn.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();goBtn.click()}});
+ var w=h('div',{class:'atl-lcard'},[
+  h('h2',{class:'atl-lt'},['ادخل باسمك']),
   h('p',{class:'atl-sm'},['اكتب اسمك وPIN. لو عندك حساب اختار "دخول"، ولو أول مرة اختار "حساب جديد" (الاسم مينفعش يتكرر)، وتقدمك بيظهر على أي جهاز تدخل منه. الـPIN أرقام بس، فاختار رقم مش سهل (6 أرقام أحسن).']),
-  h('div',{class:'atl-chips'},[chIn,chUp]),nm,pn,msg,
-  (goBtn=h('button',{type:'button',class:'atl-btn p',style:'width:100%;margin-top:8px',onclick:function(){
+  h('div',{class:'atl-seg',role:'group'},[chIn,chUp]),fld('الاسم','👤',nm),fld('الرقم السري','🔒',pn,eye),msg,
+  (goBtn=h('button',{type:'button',class:'atl-btn p atl-go',style:'width:100%',onclick:function(){
    var n=nm.value.trim(),p=pn.value.trim();
    if(!n){say('اكتب الاسم');return}
    if(!/^[0-9]{4,12}$/.test(p)){say('الـPIN لازم يكون أرقام فقط، 4 على الأقل');return}
@@ -184,9 +199,9 @@ function loginView(){
     else{say('مفيش اتصال بالإنترنت. اتصل وجرّب تاني.');done()}
    })}},['دخول'])),
   h('div',{class:'atl-note warn',style:'margin-top:10px'},['⚠️ الاسم والـPIN مهمين جدًا لحفظ تقدمك. احفظهم، ولو نسيتهم مش هتقدر ترجع لتقدمك.']),
-  h('h2',{style:'margin-top:22px'},['عندك كود نقل من جهاز تاني؟']),ta,
-  h('button',{type:'button',class:'atl-btn',style:'width:100%;margin-top:8px',onclick:function(){try{importCode(ta.value);if(CUR&&profs()[CUR]){go('home')}else say('تم استلام التقدم. سجّل دخول بحسابك وهيتضاف له — خد بالك: هيتضاف لأول حساب يدخل على الجهاز ده.')}catch(e){say('الكود مش صحيح')}}},['استيراد'])]);
- var d=h('div');d.appendChild(h('div',{class:'atl-hero'},[brandEl(),h('p',{},['مراجعة العملي'])]));d.appendChild(w);return d}
+  h('details',{class:'atl-xf'},[h('summary',{},[h('i',{},['📲']),'عندك كود نقل من جهاز تاني؟']),ta,
+  h('button',{type:'button',class:'atl-btn',style:'width:100%;margin-top:8px',onclick:function(){try{importCode(ta.value);if(CUR&&profs()[CUR]){go('home')}else say('تم استلام التقدم. سجّل دخول بحسابك وهيتضاف له — خد بالك: هيتضاف لأول حساب يدخل على الجهاز ده.')}catch(e){say('الكود مش صحيح')}}},['استيراد'])])]);
+ var d=h('div');d.appendChild(h('div',{class:'atl-hero atl-hl'},[brandEl(),h('p',{},['مراجعة العملي'])]));d.appendChild(h('div',{class:'atl-wrap atl-lshell'},[w]));return d}
 function xferView(){
  var code=exportCode();
  var ta=h('textarea',{class:'atl-in',rows:'6',readonly:'readonly'});ta.value=code||'ملف الضيف مفيهوش كود نقل';
