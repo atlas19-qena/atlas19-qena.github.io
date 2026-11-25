@@ -45,6 +45,7 @@ function lsget(k){try{return localStorage.getItem(k)}catch(e){return store['k:'+
 function lsset(k,v){store['k:'+k]=v;try{localStorage.setItem(k,v)}catch(e){}}
 function profs(){try{return JSON.parse(lsget('atlas.profiles')||'{}')}catch(e){return {}}}
 function pkey(n){return n.trim().toLowerCase().replace(/\s+/g,' ')}
+function nameOk(n){return /^[a-z\u0621-\u064a\u064b-\u0652\u0671-\u06d3.-]{2,}( [a-z\u0621-\u064a\u064b-\u0652\u0671-\u06d3.-]{2,})+$/.test(pkey(n))}
 function sha(t){var x='atlas|'+t;if(window.crypto&&crypto.subtle&&window.TextEncoder){return crypto.subtle.digest('SHA-256',new TextEncoder().encode(x)).then(function(b){return Array.prototype.map.call(new Uint8Array(b),function(c){return c.toString(16).padStart(2,'0')}).join('')})}var h1=5381;for(var i=0;i<x.length;i++)h1=((h1<<5)+h1+x.charCodeAt(i))|0;return Promise.resolve('f'+h1)}
 function load(id){try{return JSON.parse(lsget('atlas.p.'+CUR+'.'+id)||'{}')}catch(e){return {}}}
 function save(id,p){var was=answeredCount(id);lsset('atlas.p.'+CUR+'.'+id,JSON.stringify(p));var inc=Object.keys(p||{}).length-was;if(inc>0&&CUR&&CUR!=='~guest'){markDay();lsset('atlas.goal.'+CUR,JSON.stringify({d:dayKey(),n:goalGet()+inc}));bdTick()}schedulePush()}
@@ -384,6 +385,7 @@ function loginView(){
   (goBtn=h('button',{type:'button',class:'atl-btn p atl-go',style:'width:100%',onclick:function(){
    var n=nm.value.trim(),p=pn.value.trim();
    if(!n){say('اكتب الاسم');return}
+   if(mode==='up'&&!nameOk(n)){say('الاسم لازم يكون اسم ثنائي على الأقل (اسمين أو أكتر) بحروف عربي أو إنجليزي، من غير أرقام');return}
    if(!/^[0-9]{4,12}$/.test(p)){say('الـPIN لازم يكون أرقام فقط، 4 على الأقل');return}
    var k=pkey(n),btn=this,SU=mode==='up';btn.disabled=true;say(SU?'جاري التحقق...':'جاري الدخول...');
    function done(){btn.disabled=false}
@@ -397,6 +399,7 @@ function loginView(){
      else if(r.status==='taken'){say('الاسم ده مستخدم قبل كده. اختار اسم تاني (زوّد اسمك التاني أو رقم). لو ده حسابك اختار "دخول".');done()}
      else if(r.status==='none'){say('الاسم ده مش مسجل. لو أول مرة اختار "حساب جديد".');done()}
      else if(r.status==='bad'){say('الـPIN غلط للاسم ده');done()}
+     else if(r.status==='name'){say('الاسم لازم يكون اسم ثنائي على الأقل (اسمين أو أكتر) بحروف عربي أو إنجليزي، من غير أرقام');done()}
      else if(r.status==='locked'){say('الحساب مقفول مؤقتاً بعد محاولات غلط كتير. جرّب بعد 10 دقايق.');done()}
      else{say('الاسم أو الـPIN مش مقبول');done()}
     })
