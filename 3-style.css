@@ -576,3 +576,16 @@ html[data-theme="dark"] .atl-goalset{background:#16264a;border-color:#25345a}
 html[data-theme="dark"] .atl-gst,html[data-theme="dark"] .atl-gn{color:#e6ebf5}
 html[data-theme="dark"] .atl-gb,html[data-theme="dark"] .atl-gp{background:#1a2b52;border-color:#2c3f6e;color:#e6ebf5}
 html[data-theme="dark"] .atl-gp.on{background:#c9a24a;color:#12254a;border-color:#c9a24a}
+
+.atl-news{background:#fff;border:1px solid var(--line);border-radius:18px;padding:14px;margin:6px 0 14px;box-shadow:var(--shadow);direction:ltr;text-align:left}
+.atl-news h3{margin:0 0 8px;font-size:16px;color:var(--navy2);display:flex;align-items:center;gap:8px}
+.atl-news h3::after{content:"";flex:1;height:2px;border-radius:2px;background:linear-gradient(90deg,var(--gold),transparent)}
+.atl-nl{display:flex;gap:10px;align-items:baseline;padding:6px 0;border-top:1px solid var(--line);font-size:13px;color:var(--navy2)}
+.atl-nl:first-of-type{border-top:0}
+.atl-nd{flex:none;font-size:11px;color:var(--mut);font-variant-numeric:tabular-nums}
+html[data-theme="dark"] .atl-news{background:#16264a;border-color:#25345a}
+html[data-theme="dark"] .atl-news h3,html[data-theme="dark"] .atl-nl{color:#e6ebf5}
+html[data-theme="dark"] .atl-nl{border-color:#25345a}
+.atl-news{direction:rtl;text-align:right}
+.atl-nl{direction:rtl}
+.atl-nt{unicode-bidi:plaintext;text-align:right;flex:1}
