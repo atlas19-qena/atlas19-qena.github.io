@@ -755,11 +755,11 @@ snapIt();applyQE(qeCache());applyTheme();render();bgPull();refreshQE();
 /* swipe: left = next, right = previous (nav is ltr) */
 (function(){var x0=null,y0=0;app.addEventListener('touchstart',function(e){var t=e.touches[0];x0=t.clientX;y0=t.clientY},{passive:true});
 app.addEventListener('touchend',function(e){if(x0===null)return;var t=e.changedTouches[0],dx=t.clientX-x0,dy=t.clientY-y0;x0=null;if(Math.abs(dx)<70||Math.abs(dx)<Math.abs(dy)*1.5)return;if(document.activeElement&&/INPUT|TEXTAREA/.test(document.activeElement.tagName))return;var b=app.querySelector('.atl-pn');if(!b)return;var bt=b.querySelectorAll('.atl-btn');if(bt.length<2)return;var tgt=dx<0?bt[1]:bt[0];if(!tgt.disabled)tgt.click()},{passive:true})})();
-/* v7: swipe between tabs (passive listeners, horizontal intent only, RTL order: swipe left = next tab) */
+/* v7: swipe between tabs (passive listeners, horizontal intent only, RTL order: tab bar runs right to left, content follows the finger, so swipe right = tab on the left) */
 (function(){var sx=0,sy=0,st=0,ok=false;
  function hs(e){for(var n=e;n&&n!==document.body;n=n.parentNode){if(n.nodeType!==1)continue;var t=n.tagName;if(t==='INPUT'||t==='TEXTAREA'||t==='SELECT'||t==='CANVAS')return true;if(n.scrollWidth>n.clientWidth+4){var o=getComputedStyle(n).overflowX;if(o==='auto'||o==='scroll')return true}}return false}
  document.addEventListener('touchstart',function(e){ok=false;if(e.touches.length!==1||!window.__tab||RM.matches||TABIX[state.view]===undefined||window.__tab!==state.view||app.classList.contains('atl-vt'))return;if(hs(e.target))return;if(getSelection&&String(getSelection()))return;sx=e.touches[0].clientX;sy=e.touches[0].clientY;st=Date.now();ok=true},{passive:true});
- document.addEventListener('touchend',function(e){if(!ok)return;ok=false;var t=e.changedTouches[0],dx=t.clientX-sx,dy=t.clientY-sy;if(Date.now()-st>700||Math.abs(dx)<70||Math.abs(dx)<Math.abs(dy)*2)return;var i=TABIX[state.view]+(dx<0?1:-1);var names=['home','study','acct'];if(i<0||i>2)return;go(names[i])},{passive:true});
+ document.addEventListener('touchend',function(e){if(!ok)return;ok=false;var t=e.changedTouches[0],dx=t.clientX-sx,dy=t.clientY-sy;if(Date.now()-st>700||Math.abs(dx)<70||Math.abs(dx)<Math.abs(dy)*2)return;var i=TABIX[state.view]+(dx>0?1:-1);var names=['home','study','acct'];if(i<0||i>2)return;go(names[i])},{passive:true});
 })();
 
 /* v7: keyboard on the tab bar (arrows move between tabs, RTL order: Left = next) */
