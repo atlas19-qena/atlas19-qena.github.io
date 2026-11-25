@@ -479,7 +479,14 @@ function words(t){return String(t).toLowerCase().replace(/[^a-z0-9\u0600-\u06ff]
 function hasWord(ws,k){for(var i=0;i<ws.length;i++){var w=ws[i];if(w===k)return true;var tol=k.length>=8?2:(k.length>=5?1:0);if(tol&&Math.abs(w.length-k.length)<=tol&&lev(w,k)<=tol)return true}return false}
 function gradeField(f,txt){var ws=words(txt);if(!ws.length)return false;var hit=0;f.k.forEach(function(g){if(g.some(function(k){return hasWord(ws,k)}))hit++});return hit>=f.m}
 
+function doneScr(title,back,stats,msg,rows,again){var w=h('div',{class:'atl-wrap'});
+ if(msg)w.appendChild(h('div',{class:'atl-note ok',style:'text-align:center;font-weight:700;margin:12px 0'},[msg]));
+ w.appendChild(h('div',{class:'atl-stats atl-stats3'},stats.map(function(s){return h('div',{class:'atl-stat'},[h('b',{},[String(s[0])]),h('span',{},[s[1]])])})));
+ if(rows&&rows.length){w.appendChild(h('h2',{},['الأسئلة اللي غلطت فيها']));rows.forEach(function(r){w.appendChild(h('button',{type:'button',class:'atl-card',onclick:r[2]},[ico(String(r[0])),h('span',{style:'flex:1'},[h('div',{class:'t'},['سؤال '+r[0]]),h('div',{class:'s'},[r[1]])])]))})}
+ w.appendChild(h('div',{class:'atl-nav'},[h('button',{type:'button',class:'atl-btn',onclick:again},['راجع الأسئلة']),h('button',{type:'button',class:'atl-btn p',onclick:back},['خروج'])]));
+ var d=h('div');d.appendChild(top(title,null,back));d.appendChild(w);return d}
 function phqView(){
+ if(state.res)return doneScr('Physiology of blood · أسئلة الملف',function(){go('sub:physio')},[[PHQ.length,'سؤال']],'🎉 خلّصت كل أسئلة الملف',null,function(){state.res=false;state.pos=0;state.sec='';state.show=false;window.__qin=true;render();window.scrollTo(0,0)});
  var secs=[];PHQ.forEach(function(x){if(secs.indexOf(x.s)<0)secs.push(x.s)});
  var list=PHQ.map(function(x,i){x.n=i+1;return x}).filter(function(x){return !state.sec||x.s===state.sec});
  var idx=Math.min(state.pos,Math.max(list.length-1,0)),cur=list[idx],w=h('div',{class:'atl-wrap'});
@@ -492,11 +499,12 @@ function phqView(){
   else{
    cur.a.forEach(function(t){card.appendChild(h('div',{class:'atl-note ok',style:'direction:ltr;text-align:start;margin-top:6px'},[t]))})}
   w.appendChild(card);
-  w.appendChild(h('div',{class:'atl-nav atl-pn'},[h('button',{type:'button',class:'atl-btn',disabled:idx===0?'':false,onclick:function(){window.__qin=true;window.__qd='p';state.pos=idx-1;state.show=false;window.__qin=true;render();qTop()}},['← Previous']),h('button',{type:'button',class:'atl-btn p',disabled:idx>=list.length-1?'':false,onclick:function(){window.__qin=true;window.__qd='n';state.pos=idx+1;state.show=false;window.__qin=true;render();qTop()}},['Next →'])]))}
+  w.appendChild(h('div',{class:'atl-nav atl-pn'},[h('button',{type:'button',class:'atl-btn',disabled:idx===0?'':false,onclick:function(){window.__qin=true;window.__qd='p';state.pos=idx-1;state.show=false;window.__qin=true;render();qTop()}},['← Previous']),h('button',{type:'button',class:'atl-btn p','data-done':idx>=list.length-1?'1':null,onclick:function(){if(idx>=list.length-1){state.res=true;window.__qin=true;render();window.scrollTo(0,0);return}window.__qin=true;window.__qd='n';state.pos=idx+1;state.show=false;window.__qin=true;render();qTop()}},[idx>=list.length-1?'Done ✓':'Next →'])]))}
  var d=h('div');d.appendChild(top('Physiology of blood · أسئلة الملف',PHQ.length+' سؤال',function(){go('sub:physio')}));d.appendChild(w);return d}
 function pcqView(){
  if(!window.PCQ){loadPCQ();var dw=h('div');dw.appendChild(top('Para Practical Complete','',function(){go('sub:para')}));var ww=h('div',{class:'atl-wrap'});ww.appendChild(pcqWait());dw.appendChild(ww);return dw}
  var p=load('pcq'),w=h('div',{class:'atl-wrap'}),done=PCQ.filter(function(q){return p[q.n]}).length,right=PCQ.filter(function(q){return p[q.n]&&p[q.n].r}).length;
+ if(state.res)return doneScr('Para Practical Complete',function(){go('sub:para')},[[right+' / '+PCQ.length,'صح'],[done,'اتحل'],[PCQ.length-done,'من غير إجابة']],done===PCQ.length&&right===PCQ.length?'ممتاز! كل إجاباتك صح.':null,PCQ.filter(function(q){return p[q.n]&&!p[q.n].r}).map(function(q){return [q.n,'غلط، ادخل راجعها',function(){state.res=false;state.wrong=false;state.pos=PCQ.indexOf(q);window.__qin=true;render();window.scrollTo(0,0)}]}),function(){state.res=false;state.pos=0;state.wrong=false;window.__qin=true;render();window.scrollTo(0,0)});
  var list=PCQ.filter(function(q){return !state.wrong||(p[q.n]&&!p[q.n].r)});
  var idx=Math.min(state.pos,Math.max(list.length-1,0)),cur=list[idx];
 
@@ -530,7 +538,7 @@ function pcqView(){
    card.appendChild(row)}
   card.appendChild(reportBtn('pcq',cur.n));
   w.appendChild(card);
-  w.appendChild(h('div',{class:'atl-nav atl-pn'},[h('button',{type:'button',class:'atl-btn',disabled:idx===0?'':false,onclick:function(){window.__qin=true;window.__qd='p';state.pos=idx-1;window.__qin=true;render();qTop()}},['← Previous']),h('button',{type:'button',class:'atl-btn p',disabled:idx>=list.length-1?'':false,onclick:function(){window.__qin=true;window.__qd='n';state.pos=idx+1;window.__qin=true;render();qTop()}},['Next →'])]))}
+  w.appendChild(h('div',{class:'atl-nav atl-pn'},[h('button',{type:'button',class:'atl-btn',disabled:idx===0?'':false,onclick:function(){window.__qin=true;window.__qd='p';state.pos=idx-1;window.__qin=true;render();qTop()}},['← Previous']),h('button',{type:'button',class:'atl-btn p','data-done':idx>=list.length-1?'1':null,onclick:function(){if(idx>=list.length-1){state.res=true;window.__qin=true;render();window.scrollTo(0,0);return}window.__qin=true;window.__qd='n';state.pos=idx+1;window.__qin=true;render();qTop()}},[idx>=list.length-1?'Done ✓':'Next →'])]))}
  w.appendChild(h('div',{class:'atl-nav'},[h('button',{type:'button',class:'atl-btn',onclick:function(){askYes('تمسح كل إجاباتك في الجزء ده؟',function(){save('pcq',{});state.pos=0;state.wrong=false;render()})}},['ابدأ من الأول (يمسح إجاباتك)'])]));
  var d=h('div');d.appendChild(top('Para Practical Complete',done+' / '+PCQ.length+' answered · '+right+' right',function(){go('sub:para')}));d.appendChild(w);return d}
 function inp0(a){a[0]&&a[0].focus()}
@@ -738,6 +746,14 @@ function quiz(set){var p=load(set.id),s=null;SUBJECTS.forEach(function(x){if(x.q
  var answered=set.items.filter(function(q){return p[q.n]}).length;
  var correct=set.items.filter(function(q){return set.key&&p[q.n]&&p[q.n]===q.a}).length;
  var w=h('div',{class:'atl-wrap'});
+ if(state.res&&set.items.length){var tot=set.items.length,pc=set.key?Math.round(correct*100/tot):0,wl=set.items.filter(wrong);
+  if(set.key){w.appendChild(h('div',{class:'atl3-sr'+(pc>=75?' g':pc>=50?' m':' l')},[h('div',{class:'atl3-ring',style:'--p:'+pc},[h('b',{},[pc+'%'])]),h('div',{class:'atl3-srt'},[h('b',{},[pc>=90?'🏆 دحيح!':pc>=75?'🌟 ممتاز':pc>=50?'💪 فيه كمان أحسن':'📚 محتاج تراجع تاني']),h('small',{},['جاوبت صح '+correct+' من '+tot])])]));
+   w.appendChild(h('div',{class:'atl-stats atl-stats3'},[h('div',{class:'atl-stat'},[h('b',{},[correct+' / '+tot]),h('span',{},['الدرجة'])]),h('div',{class:'atl-stat'},[h('b',{},[pc+'%']),h('span',{},['النسبة'])]),h('div',{class:'atl-stat'},[h('b',{},[String(tot-answered)]),h('span',{},['من غير إجابة'])])]))}
+  else{w.appendChild(h('div',{class:'atl-stats atl-stats3'},[h('div',{class:'atl-stat'},[h('b',{},[answered+' / '+tot]),h('span',{},['اتجاوب'])]),h('div',{class:'atl-stat'},[h('b',{},[String(tot-answered)]),h('span',{},['من غير إجابة'])])]))}
+  if(set.key&&wl.length){w.appendChild(h('h2',{},['الأسئلة اللي غلطت فيها']));wl.forEach(function(q){w.appendChild(h('button',{type:'button',class:'atl-card',onclick:function(){state.res=false;state.sec='';state.wrong=false;state.pos=set.items.indexOf(q);window.__qin=true;render();window.scrollTo(0,0)}},[ico(String(q.n)),h('span',{style:'flex:1'},[h('div',{class:'t'},['سؤال '+q.n]),h('div',{class:'s'},['اخترت '+p[q.n]+' والصح '+q.a])])]))})}
+  else if(set.key&&answered===tot)w.appendChild(h('div',{class:'atl-note ok'},['ممتاز! كل إجاباتك صح.']));
+  w.appendChild(h('div',{class:'atl-nav'},[h('button',{type:'button',class:'atl-btn',onclick:function(){state.res=false;state.pos=0;state.sec='';state.wrong=false;window.__qin=true;render();window.scrollTo(0,0)}},['راجع الأسئلة']),h('button',{type:'button',class:'atl-btn p',onclick:function(){go('sub:'+s.id)}},['خروج'])]));
+  var d0=h('div');d0.appendChild(top('النتيجة · '+set.title,answered+' / '+tot+' answered',function(){go('sub:'+s.id)}));d0.appendChild(w);return d0}
  w.appendChild(h('div',{class:'atl3-qh'},[h('div',{class:'atl3-qhr'},[h('span',{},['✅ '+correct]),h('span',{},[answered+' / '+set.items.length]),h('span',{},['❌ '+(set.key?answered-correct:0)])]),h('div',{class:'atl-bar'},[h('i',{style:'width:'+Math.round(answered*100/set.items.length)+'%'})])]));
  if(secs.length){var c=h('div',{class:'atl-chips'});[''].concat(secs).forEach(function(x){c.appendChild(h('button',{type:'button',class:'atl-chip','aria-pressed':String(state.sec===x),onclick:function(){state.sec=x;state.pos=0;window.__qin=true;render()}},[x||'All']))});w.appendChild(c)}
  if(set.key){w.appendChild(h('div',{class:'atl-chips'},[h('button',{type:'button',class:'atl-chip','aria-pressed':String(state.wrong),onclick:function(){state.wrong=!state.wrong;state.pos=0;window.__qin=true;render()}},['My mistakes only ('+set.items.filter(wrong).length+')'])]))}
@@ -755,13 +771,13 @@ function quiz(set){var p=load(set.id),s=null;SUBJECTS.forEach(function(x){if(x.q
   if(set.key&&pk)card.appendChild(pk===cur.a?h('div',{class:'atl-note ok'},['إجابة صحيحة ('+cur.a+')']):h('div',{class:'atl-note bad'},['غلط. الإجابة الصحيحة: '+cur.a]));
   card.appendChild(reportBtn(set.id,cur.n));
   w.appendChild(card);
-  w.appendChild(h('div',{class:'atl-nav atl-pn'},[h('button',{type:'button',class:'atl-btn',disabled:idx===0?'':false,onclick:function(){window.__qin=true;window.__qd='p';state.pos=idx-1;window.__qin=true;render();qTop()}},['← Previous']),h('button',{type:'button',class:'atl-btn p',disabled:idx>=list.length-1?'':false,onclick:function(){window.__qin=true;window.__qd='n';state.pos=idx+1;window.__qin=true;render();qTop()}},['Next →'])]))}
+  w.appendChild(h('div',{class:'atl-nav atl-pn'},[h('button',{type:'button',class:'atl-btn',disabled:idx===0?'':false,onclick:function(){window.__qin=true;window.__qd='p';state.pos=idx-1;window.__qin=true;render();qTop()}},['← Previous']),h('button',{type:'button',class:'atl-btn p','data-done':idx>=list.length-1?'1':null,onclick:function(){if(idx>=list.length-1){state.res=true;window.__qin=true;render();window.scrollTo(0,0);return}window.__qin=true;window.__qd='n';state.pos=idx+1;window.__qin=true;render();qTop()}},[idx>=list.length-1?'Done ✓':'Next →'])]))}
  w.appendChild(h('div',{class:'atl-nav'},[h('button',{type:'button',class:'atl-btn atl3-rs',onclick:function(){askYes('تمسح كل اختياراتك في الأسئلة دي؟',function(){save(set.id,{});state.pos=0;state.wrong=false;render()})}},['ابدأ من الأول (يمسح اختياراتك)'])]));
  var d=h('div');d.appendChild(top(set.title,answered+' / '+set.items.length+' answered'+(set.key?' · '+correct+' correct':''),function(){go('sub:'+s.id)}));d.appendChild(w);return d}
 snapIt();applyQE(qeCache());applyTheme();render();bgPull();refreshQE();
 /* swipe: left = next, right = previous (nav is ltr) */
 (function(){var x0=null,y0=0;app.addEventListener('touchstart',function(e){var t=e.touches[0];x0=t.clientX;y0=t.clientY},{passive:true});
-app.addEventListener('touchend',function(e){if(x0===null)return;var t=e.changedTouches[0],dx=t.clientX-x0,dy=t.clientY-y0;x0=null;if(Math.abs(dx)<70||Math.abs(dx)<Math.abs(dy)*1.5)return;if(document.activeElement&&/INPUT|TEXTAREA/.test(document.activeElement.tagName))return;var b=app.querySelector('.atl-pn');if(!b)return;var bt=b.querySelectorAll('.atl-btn');if(bt.length<2)return;var tgt=dx<0?bt[1]:bt[0];if(!tgt.disabled)tgt.click()},{passive:true})})();
+app.addEventListener('touchend',function(e){if(x0===null)return;var t=e.changedTouches[0],dx=t.clientX-x0,dy=t.clientY-y0;x0=null;if(Math.abs(dx)<70||Math.abs(dx)<Math.abs(dy)*1.5)return;if(document.activeElement&&/INPUT|TEXTAREA/.test(document.activeElement.tagName))return;var b=app.querySelector('.atl-pn');if(!b)return;var bt=b.querySelectorAll('.atl-btn');if(bt.length<2)return;var tgt=dx<0?bt[1]:bt[0];if(tgt.getAttribute('data-done'))return;if(!tgt.disabled)tgt.click()},{passive:true})})();
 /* v7: swipe between tabs (passive listeners, horizontal intent only, RTL order: tab bar runs right to left, content follows the finger, so swipe right = tab on the left) */
 (function(){var sx=0,sy=0,st=0,ok=false;
  function hs(e){for(var n=e;n&&n!==document.body;n=n.parentNode){if(n.nodeType!==1)continue;var t=n.tagName;if(t==='INPUT'||t==='TEXTAREA'||t==='SELECT'||t==='CANVAS')return true;if(n.scrollWidth>n.clientWidth+4){var o=getComputedStyle(n).overflowX;if(o==='auto'||o==='scroll')return true}}return false}
