@@ -57,7 +57,7 @@ function importCode(c){c=String(c||'').trim();if(c.length>200000)throw 0;var d=J
 function mergePending(){var raw=lsget('atlas.pend');if(!raw||!CUR||CUR==='~guest'||!profs()[CUR])return;var by=lsget('atlas.pendby')||'';if(by&&by!==CUR&&by!=='~guest')return;var d;try{d=JSON.parse(raw)}catch(e){d=null}try{localStorage.removeItem('atlas.pend')}catch(e){}try{localStorage.removeItem('atlas.pendby')}catch(e){}store['k:atlas.pend']='';store['k:atlas.pendby']='';if(!d)return;Object.keys(d).forEach(function(id){if(SETS[id]||id==='pcq'){var cur=load(id),m=d[id];for(var q in m)if(!badKey(q)&&Object.prototype.hasOwnProperty.call(m,q)&&!(q in cur))cur[q]=m[q];save(id,cur)}});schedulePush()}
 
 var SBU='https://aohuvtnukfkbebyrzdol.supabase.co/rest/v1/rpc/',SBK='sb_publishable_oK96E2HQQHbbleN-ZNnZSA_JHfcefWV';
-var GOPOS=0,ISADM=true,pushT=null,syncMsg='';
+var GOPOS=0,ISADM=false,pushT=null,syncMsg='';
 function derive(k,pin){if(!(window.crypto&&crypto.subtle&&window.TextEncoder))return Promise.reject(new Error('nocrypto'));var enc=new TextEncoder();return crypto.subtle.importKey('raw',enc.encode(pin),'PBKDF2',false,['deriveBits']).then(function(key){return crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt:enc.encode('atlas19|'+k),iterations:100000},key,256)}).then(function(b){return Array.prototype.map.call(new Uint8Array(b),function(c){return c.toString(16).padStart(2,'0')}).join('')})}
 function rpc(fn,body){return fetch(SBU+fn,{method:'POST',headers:{apikey:SBK,'Content-Type':'application/json'},body:JSON.stringify(body)}).then(function(r){if(!r.ok)throw new Error('http'+r.status);return r.json()})}
 function allData(){var d={};Object.keys(SETS).forEach(function(k){d[k]=load(k)});d.pcq=load('pcq');d.stats={m:mistakesList().length};return d}
@@ -67,7 +67,7 @@ function schedulePush(){var pr=profs()[CUR];if(!pr||!pr.dh||CUR==='~guest')retur
 var pushF=0;function retryPush(){pushF++;var d=Math.min(60000,3000*Math.pow(2,Math.min(pushF,5)));clearTimeout(pushT);pushT=setTimeout(pushNow,d)}
 document.addEventListener('visibilitychange',function(){var pr=profs()[CUR];if(document.visibilityState==='hidden'&&pr&&pr.dirty&&CUR!=='~guest')pushNow()})
 function applyRemote(d,keepLocal){Object.keys(SETS).concat(['pcq']).forEach(function(k){var r=(d&&d[k])||{},l=load(k),m;if(keepLocal){m={};for(var a in r)if(!badKey(a))m[a]=r[a];for(var b in l)if(!badKey(b))m[b]=l[b]}else m=r;lsset('atlas.p.'+CUR+'.'+k,JSON.stringify(m))})}
-function bgPull(){var pr=profs()[CUR];if(!pr||!pr.dh||CUR==='~guest')return;rpc('atlas_login',{p_name:pr.name,p_pin:pr.dh,p_create:false}).then(function(r){if(!r||r.status!=='ok')return;ISADM=!!r.admin;if(pr.dirty){applyRemote(r.data,true);pushNow()}else applyRemote(r.data,false);xPull();if(state.view==='home')render()}).catch(function(){})}
+function bgPull(){var pr=profs()[CUR];if(!pr||!pr.dh||CUR==='~guest')return;rpc('atlas_login',{p_name:pr.name,p_pin:pr.dh,p_create:false}).then(function(r){if(!r||r.status!=='ok')return;ISADM=!!r.admin;if(pr.dirty){applyRemote(r.data,true);pushNow()}else applyRemote(r.data,false);xPull();if(state.view==='home'||state.view==='acct')render()}).catch(function(){})}
 window.addEventListener('online',function(){var pr=profs()[CUR];if(pr&&pr.dirty)pushNow()});
 function ago(t){var s=(Date.now()-new Date(t).getTime())/1000;if(s<90)return 'دلوقتي';if(s<3600)return Math.round(s/60)+' د';if(s<86400)return Math.round(s/3600)+' س';return Math.round(s/86400)+' يوم'}
 function adminLoginsView(){var w=h('div',{class:'atl-wrap',style:'padding-top:14px'},[h('div',{class:'atl-note warn'},['جاري التحميل...'])]);var d=h('div');d.appendChild(top('تسجيل الدخول',null,function(){go('admin')}));d.appendChild(w);
@@ -140,7 +140,7 @@ function renderCore0(){app.innerHTML='';var v=state.view;if(CUR&&v!=='login')mer
  else app.appendChild(home())}
 function subj(id){return SUBJECTS.filter(function(s){return s.id===id})[0]}
 function ico(t){return h('span',{class:'atl-ico'},[t])}
-/* profile photo: stays on this device only (localStorage, never sent to the server) */
+/* profile photo: kept locally and synced to the signed-in account (see xPush) */
 function avKey(){return 'atlas.av.'+CUR}
 function avOk(){return !!CUR&&CUR!=='~guest'&&!!profs()[CUR]}
 function avGet(){if(!avOk())return '';var v=lsget(avKey())||'';return(/^data:image\/jpeg;base64,[A-Za-z0-9+\/=]+$/.test(v)&&v.length<120000)?v:''}
@@ -160,7 +160,7 @@ function avDlg(){
  var SZ=240,OUT=256,im=null,sc=1,mn=1,ox=0,oy=0;
  var ov=h('div',{class:'atl-ov',role:'dialog','aria-modal':'true','aria-label':'صورة الحساب'}),bx=h('div',{class:'atl-dlg atl3-avd'});
  var cv=h('canvas',{class:'atl3-avcv',width:SZ,height:SZ}),cx=cv.getContext('2d');
- var msg=h('div',{class:'atl3-avm'},['اختار صورة من جهازك. هتتحفظ على الجهاز ده بس ومش بتتبعت لأي سيرفر.']);
+ var msg=h('div',{class:'atl3-avm'},['اختار صورة من جهازك. هتتحفظ على حسابك وتظهر معاك على أي جهاز (لو مسجّل دخول).']);
  var fi=h('input',{type:'file',accept:'image/*',style:'display:none','aria-label':'اختيار صورة'});
  var zm=h('input',{type:'range',min:'100',max:'300',value:'100',class:'atl3-zm','aria-label':'تكبير',disabled:''});
  var pick=h('button',{type:'button',class:'atl-btn',onclick:function(){fi.click()}},['📁 اختار صورة']);
