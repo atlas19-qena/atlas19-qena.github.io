@@ -688,3 +688,22 @@ html[data-theme="dark"] .atl-bd{background:#22304f;color:#b7c4e6}html[data-theme
 .atl-toast.bad{background:#a3283a}
 @keyframes atlToast{from{opacity:0;transform:translate(-50%,-10px)}}
 @media (prefers-reduced-motion:reduce){.atl-toast{animation:none}}
+
+.atl-q{position:relative}
+.atl-fav{position:absolute;top:10px;right:10px;width:40px;height:40px;border-radius:50%;border:1.5px solid #d9c9a0;background:#fffdf6;color:#b8923a;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;z-index:2;transition:transform .15s,background .2s,color .2s,border-color .2s}
+.atl-fav svg{fill:none;stroke:currentColor;stroke-width:1.8;transition:fill .2s}
+.atl-fav.on{background:#f6b92b;border-color:#e0a010;color:#fff}
+.atl-fav.on svg{fill:currentColor}
+.atl-fav.pop{animation:atlFavPop .35s ease}
+@keyframes atlFavPop{0%{transform:scale(1)}45%{transform:scale(1.3) rotate(12deg)}100%{transform:scale(1)}}
+.atl-fav:focus-visible{outline:3px solid #1e3a6e;outline-offset:2px}
+.atl-fq .atl-qm{padding-right:48px}
+.atl-q .atl-qm{padding-right:48px}
+html[data-theme="dark"] .atl-fav{background:#232a3a;border-color:#5c5030;color:#e0b552}
+html[data-theme="dark"] .atl-fav.on{background:#f6b92b;color:#1b1b1b;border-color:#f6b92b}
+@media (prefers-reduced-motion:reduce){.atl-fav.pop{animation:none}}
+
+button.atl-stat-fav{font:inherit;color:inherit;cursor:pointer;border:1px solid var(--line);background:#fff;text-align:center;transition:transform .12s}
+button.atl-stat-fav:active{transform:scale(.96)}
+button.atl-stat-fav b{color:#b8923a}
+html[data-theme="dark"] button.atl-stat-fav{background:#232a3a}
