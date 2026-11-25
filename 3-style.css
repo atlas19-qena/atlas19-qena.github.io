@@ -645,3 +645,6 @@ html[data-theme="dark"] .atl6-b b{color:#8d9bb8}html[data-theme="dark"] .atl6-b 
 .atl-nl.lk{cursor:pointer}
 .atl-nl.lk .atl-nt::after{content:' \203A';color:#c9a46a;font-weight:800}
 .atl-o{font:inherit;cursor:pointer}
+
+.atl-nl.rp .atl-nt{direction:rtl;font-weight:700;color:#7a5a16}
+html[data-theme="dark"] .atl-nl.rp .atl-nt{color:#e6c88f}
