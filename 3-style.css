@@ -562,3 +562,17 @@ html[data-theme="dark"] .atl-tab.on::after{background:#e6c88f}
 
 .atl-tw .atl-pf{margin:14px 0!important}
 
+.atl-goalset{background:#fff;border:1px solid var(--line);border-radius:18px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow)}
+.atl-gst{display:flex;flex-direction:column;gap:2px;margin-bottom:10px;color:var(--navy2)}
+.atl-gst small{color:var(--mut);font-size:12px}
+.atl-gstep{display:flex;align-items:center;justify-content:center;gap:18px;margin-bottom:10px;direction:ltr}
+.atl-gb{width:44px;height:44px;border-radius:14px;border:1px solid var(--line);background:#f4f6fb;color:var(--navy2);font-size:24px;font-weight:700;line-height:1}
+.atl-gb:active{background:#e4eaf6}
+.atl-gn{min-width:64px;text-align:center;font-size:30px;font-weight:800;color:var(--navy2)}
+.atl-gps{display:flex;gap:8px;justify-content:center;direction:ltr}
+.atl-gp{flex:1;min-height:38px;border-radius:12px;border:1px solid var(--line);background:#f4f6fb;color:var(--navy2);font-weight:700}
+.atl-gp.on{background:#1e3a6e;color:#fff;border-color:#1e3a6e}
+html[data-theme="dark"] .atl-goalset{background:#16264a;border-color:#25345a}
+html[data-theme="dark"] .atl-gst,html[data-theme="dark"] .atl-gn{color:#e6ebf5}
+html[data-theme="dark"] .atl-gb,html[data-theme="dark"] .atl-gp{background:#1a2b52;border-color:#2c3f6e;color:#e6ebf5}
+html[data-theme="dark"] .atl-gp.on{background:#c9a24a;color:#12254a;border-color:#c9a24a}
