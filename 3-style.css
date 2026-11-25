@@ -677,3 +677,8 @@ body{overscroll-behavior-x:none}
 .atl-tab:focus-visible{outline:2px solid #c9a46a;outline-offset:-2px}
 .atl-tab:focus:not(:focus-visible){outline:none}
 @media (min-width:900px){.atl-tabs{left:50%;right:auto;width:560px;transform:translateX(-50%);border-radius:18px 18px 0 0;border:1px solid #d9deea;border-bottom:0}html[data-theme="dark"] .atl-tabs{border-color:#25345a}}
+
+/* v8: report status badge */
+.atl-bd{display:inline-block;padding:3px 10px;border-radius:99px;font-size:12px;font-weight:700;background:#eef1f8;color:#42507a;direction:rtl}
+.atl-bd.rp{background:#e3f0ff;color:#1b4f9c}.atl-bd.fx{background:#e2f5e7;color:#1d7a3a}.atl-bd.rj{background:#fbe6e8;color:#a3283a}.atl-bd.op{background:#fff3d6;color:#8a6212}
+html[data-theme="dark"] .atl-bd{background:#22304f;color:#b7c4e6}html[data-theme="dark"] .atl-bd.rp{background:#173152;color:#9cc4ff}html[data-theme="dark"] .atl-bd.fx{background:#16361f;color:#8fdca4}html[data-theme="dark"] .atl-bd.rj{background:#3b1b22;color:#f1a1ad}html[data-theme="dark"] .atl-bd.op{background:#3b3216;color:#f0d28b}
