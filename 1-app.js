@@ -627,8 +627,12 @@ function reportDlg(sid,n){var pr=profs()[CUR];
 function reportsView(){var w=h('div',{class:'atl-wrap',style:'padding-top:14px'},[h('div',{class:'atl-note warn'},['جاري التحميل...'])]);var d=h('div');d.appendChild(top('بلاغات الأسئلة',null,function(){go('admin')}));d.appendChild(w);
  var pr=profs()[CUR];if(!pr||!pr.dh){w.innerHTML='';w.appendChild(h('div',{class:'atl-note bad'},['سجل دخول بحساب الأدمن']));return d}
  var KL={wrong:'الإجابة غلط',expl:'الشرح ناقص',typo:'غلطة إملائية',other:'حاجة تانية'},SL={open:'مفتوح',fixed:'اتصلح',rejected:'مرفوض'};
+ var TAB=0;function isDone(x){return x.status!=='open'||!!(x.reply&&String(x.reply).trim())}
  function load(){rpc('atlas_report_list',{p_name:pr.name,p_pin:pr.dh}).then(function(r){w.innerHTML='';if(!r||r.status!=='ok'){w.appendChild(h('div',{class:'atl-note bad'},['مفيش صلاحية']));return}
-  var rs=r.reports||[];w.appendChild(h('div',{class:'atl-note ok'},[rs.filter(function(x){return x.status==='open'}).length+' مفتوح من '+rs.length]));
+  var all0=r.reports||[],nIn=all0.filter(function(x){return !isDone(x)}).length,nDn=all0.length-nIn;
+  var tabs=h('div',{class:'atl-nav',style:'margin-bottom:10px'},[h('button',{type:'button',class:'atl-btn'+(TAB===0?' p':''),onclick:function(){TAB=0;load()}},['استلام البلاغات ('+nIn+')']),h('button',{type:'button',class:'atl-btn'+(TAB===1?' p':''),onclick:function(){TAB=1;load()}},['تم الرد عليه ('+nDn+')'])]);w.appendChild(tabs);
+  var rs=all0.filter(function(x){return TAB===1?isDone(x):!isDone(x)});
+  if(!rs.length)w.appendChild(h('div',{class:'atl-note ok'},[TAB===1?'مفيش بلاغات اتردّ عليها لسه':'مفيش بلاغات جديدة']));
   rs.forEach(function(x){var tl=x.set_id==='pcq'?'Para Practical Complete':(SETS[x.set_id]?SETS[x.set_id].title:x.set_id);
    var rp=h('textarea',{class:'atl-in',rows:'2',maxlength:'300',placeholder:'اكتب ردك للطالب اللي بعت البلاغ'});rp.value=x.reply||'';
    function upd(st){rpc('atlas_report_update',{p_name:pr.name,p_pin:pr.dh,p_id:x.id,p_status:st,p_reply:rp.value.trim().slice(0,300)}).then(function(){load()}).catch(function(){})}
