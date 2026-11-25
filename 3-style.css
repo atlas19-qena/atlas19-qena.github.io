@@ -559,3 +559,6 @@ html[data-theme="dark"] .atl-cont .atl-ico{background:#c9a24a;color:#12254a}
 html[data-theme="dark"] .atl5-i .a{stroke:#e6c88f}
 html[data-theme="dark"] .atl-tab.on{background:none;color:#f1e3c4}
 html[data-theme="dark"] .atl-tab.on::after{background:#e6c88f}
+
+.atl-tw .atl-pf{margin:14px 0!important}
+
