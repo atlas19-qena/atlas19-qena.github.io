@@ -272,10 +272,18 @@ function bMet(g){var ka=0,kc=0,sets=0;if(!g.m)g.m={};
 function bAll(g){var m=bMet(g),out=[];BC.forEach(function(c,ci){c.th.forEach(function(t,i){out.push({c:c,ci:ci,i:i,key:c.k+i,n:t,nm:c.nm[i],ds:c.ds.replace('#',t),cur:m[c.k],on:!!g.b[c.k+i]})})});return out}
 
 /* server sync for badges + photo (additive; failures are silent, local copy stays the source on this device) */
+/* replies to the student's own reports, shown in News (server: atlas_my_replies, own reports only) */
+var RPL=[];
+function rpKey(){return 'atlas.rpseen.'+CUR}
+function rpSeen(){try{var a=JSON.parse(lsget(rpKey())||'[]');return Array.isArray(a)?a:[]}catch(e){return []}}
+function rpLoad(){RPL=[];if(!CUR||CUR==='~guest')return;try{var a=JSON.parse(lsget('atlas.rpl.'+CUR)||'[]');if(Array.isArray(a))RPL=a}catch(e){}}
+function rpNews(){if(!CUR||CUR==='~guest')return [];var sn=rpSeen();return RPL.filter(function(x){return x&&sn.indexOf(x.id+':'+x.at)<0}).slice(0,3).map(function(x){var set=x.set;var v=set==='pcq'?'pcq':(SETS[set]?'quiz:'+set:'');return {d:(x.at||'').slice(0,10),t:'رد على بلاغك (سؤال '+x.qn+'): '+x.reply,v:v,rp:x}})}
+function rpOpen(x){var sn=rpSeen();sn.push(x.id+':'+x.at);lsset(rpKey(),JSON.stringify(sn.slice(-50)));var v=x.set==='pcq'?'pcq':(SETS[x.set]?'quiz:'+x.set:'');if(v.indexOf('quiz:')===0){var ix=-1;SETS[x.set].items.forEach(function(it,i){if(it.n===x.qn)ix=i});if(ix>=0)GOPOS=ix}go(v||'home')}
+function rpPull(){var pr=profs()[CUR];if(!pr||!pr.dh||CUR==='~guest')return;var me=CUR;rpc('atlas_my_replies',{p_name:pr.name,p_pin:pr.dh}).then(function(r){if(me!==CUR||!r||r.status!=='ok'||!Array.isArray(r.replies))return;var a=r.replies.filter(function(x){return x&&typeof x.reply==='string'&&x.reply}).map(function(x){return {id:x.id|0,set:String(x.set_id||''),qn:x.qn|0,reply:x.reply.slice(0,300),at:String(x.handled_at||'')}});var s=JSON.stringify(a);if(s!==(lsget('atlas.rpl.'+CUR)||'')){lsset('atlas.rpl.'+CUR,s);RPL=a;if(state.view==='home')render()}}).catch(function(){})}
 var XT=0,XS='';
 function xBody(){return JSON.stringify({b:bdGet(),p:avGet()})}
 function xPush(){var pr=profs()[CUR];if(!pr||!pr.dh||CUR==='~guest')return;clearTimeout(XT);var me=CUR;XT=setTimeout(function(){var p=profs()[CUR];if(me!==CUR||!p||!p.dh)return;var body=xBody();if(body===XS)return;rpc('atlas_extra_set',{p_name:p.name,p_pin:p.dh,p_badges:bdGet(),p_photo:avGet()}).then(function(r){if(r&&r.status==='ok')XS=body}).catch(function(){})},4000)}
-function xPull(){var pr=profs()[CUR];if(!pr||!pr.dh||CUR==='~guest')return;var me=CUR;
+function xPull(){var pr=profs()[CUR];if(!pr||!pr.dh||CUR==='~guest')return;var me=CUR;rpPull();
  rpc('atlas_extra_get',{p_name:pr.name,p_pin:pr.dh}).then(function(r){if(me!==CUR||!r||r.status!=='ok')return;
   var g=bdGet(),rb=(r.badges&&typeof r.badges==='object'&&!Array.isArray(r.badges))?r.badges:{},ch=false,k;
   var rbb=(rb.b&&typeof rb.b==='object')?rb.b:{};for(k in rbb){if(/^[a-z]+[0-4]$/.test(k)&&typeof rbb[k]==='string'&&!g.b[k]){g.b[k]=rbb[k].slice(0,20);ch=true}}
@@ -343,7 +351,7 @@ function home(){
  wrap.appendChild(h('button',{type:'button',class:'atl-card atl-rnd',onclick:function(){go('rmod')}},[h('span',{class:'atl-ico'},['🎲']),h('span',{style:'flex:1'},[h('div',{class:'t'},['اختبار عشوائي']),h('div',{class:'s'},['30 سؤال متنوع من كل المواد'])])]));
   if(lg){var ls=lg.v==='pcq'?null:SETS[lg.v.slice(5)],lt=lg.v==='pcq'?'Para Practical Complete':(ls?ls.title:'');wrap.appendChild(h('button',{type:'button',class:'atl-card atl-cont',onclick:function(){GOPOS=lg.p;go(lg.v)}},[h('span',{class:'atl-ico'},['▶️']),h('span',{style:'flex:1;min-width:0'},[h('div',{class:'t'},['كمّل من حيث وقفت']),h('div',{class:'s',style:'direction:ltr;text-align:start'},[lt+' · Q'+(lg.p+1)])])]))}
 wrap.appendChild(h('button',{type:'button',class:'atl-card',onclick:function(){go('mist')}},[ico('📝'),h('span',{style:'flex:1'},[h('div',{class:'t'},['أخطائي']),h('div',{class:'s'},[ml.length?ml.length+' سؤال غلط':'مفيش أخطاء لسه'])]),h('span',{class:'atl-tag'+(ml.length?' warn':'')},[String(ml.length)])]));
- if(NEWS.length){var nw=h('div',{class:'atl-news'},[h('h3',{},['News'])]);NEWS.slice(0,3).forEach(function(x){nw.appendChild(h('div',x.v?{class:'atl-nl lk',role:'link',tabindex:'0',onclick:function(){go(x.v)},onkeydown:function(e){if(e.key==='Enter')go(x.v)}}:{class:'atl-nl'},[h('span',{class:'atl-nd'},[x.d]),h('span',{class:'atl-nt'},[x.t])]))});wrap.appendChild(nw)}
+ rpLoad();var NL=rpNews().concat(NEWS).slice(0,4);if(NL.length){var nw=h('div',{class:'atl-news'},[h('h3',{},['News'])]);NL.forEach(function(x){var go1=function(){if(x.rp)rpOpen(x.rp);else go(x.v)};nw.appendChild(h('div',x.v||x.rp?{class:'atl-nl lk'+(x.rp?' rp':''),role:'link',tabindex:'0',onclick:go1,onkeydown:function(e){if(e.key==='Enter')go1()}}:{class:'atl-nl'},[h('span',{class:'atl-nd'},[x.d]),h('span',{class:'atl-nt'},[x.t])]))});wrap.appendChild(nw)}
  var f=h('div');f.appendChild(hero);f.appendChild(wrap);f.appendChild(tabs('home'));return f}
 function loginView(){
  var nm=h('input',{class:'atl-in',type:'text',placeholder:'مثال: أحمد محمد',autocomplete:'off',maxlength:'30','aria-label':'الاسم'});
@@ -621,11 +629,11 @@ function reportsView(){var w=h('div',{class:'atl-wrap',style:'padding-top:14px'}
  function load(){rpc('atlas_report_list',{p_name:pr.name,p_pin:pr.dh}).then(function(r){w.innerHTML='';if(!r||r.status!=='ok'){w.appendChild(h('div',{class:'atl-note bad'},['مفيش صلاحية']));return}
   var rs=r.reports||[];w.appendChild(h('div',{class:'atl-note ok'},[rs.filter(function(x){return x.status==='open'}).length+' مفتوح من '+rs.length]));
   rs.forEach(function(x){var tl=x.set_id==='pcq'?'Para Practical Complete':(SETS[x.set_id]?SETS[x.set_id].title:x.set_id);
-   var rp=h('textarea',{class:'atl-in',rows:'2',maxlength:'300',placeholder:'رد أو ملاحظة (اختياري)'});rp.value=x.reply||'';
+   var rp=h('textarea',{class:'atl-in',rows:'2',maxlength:'300',placeholder:'اكتب ردك للطالب اللي بعت البلاغ'});rp.value=x.reply||'';
    function upd(st){rpc('atlas_report_update',{p_name:pr.name,p_pin:pr.dh,p_id:x.id,p_status:st,p_reply:rp.value.trim().slice(0,300)}).then(function(){load()}).catch(function(){})}
    w.appendChild(h('div',{class:'atl-q'},[h('div',{class:'atl-qm'},[h('span',{},[tl+' · سؤال '+x.qn]),h('span',{},[SL[x.status]||x.status])]),
     h('p',{class:'atl-qt',style:'font-size:14px'},[(KL[x.kind]||x.kind)+' · من '+x.by_name+' · '+ago(x.created_at)]),x.note?h('p',{class:'atl-qt',style:'font-size:14px'},[x.note]):null,rp,
-    h('div',{class:'atl-nav'},[h('button',{type:'button',class:'atl-btn p',onclick:function(){upd('fixed')}},['اتصلح']),h('button',{type:'button',class:'atl-btn',onclick:function(){upd('rejected')}},['رفض']),h('button',{type:'button',class:'atl-btn',onclick:function(){upd('open')}},['فتح'])])]))})}).catch(function(){w.innerHTML='';w.appendChild(h('div',{class:'atl-note bad'},['مفيش اتصال']))})}
+    h('div',{class:'atl-nav'},[h('button',{type:'button',class:'atl-btn p',onclick:function(){var t=rp.value.trim();if(!t){rp.focus();rp.placeholder='اكتب الرد الأول';return}rpc('atlas_report_reply',{p_name:pr.name,p_pin:pr.dh,p_id:x.id,p_reply:t.slice(0,300)}).then(function(){load()}).catch(function(){})}},['رد']),h('button',{type:'button',class:'atl-btn',onclick:function(){upd('fixed')}},['اتصلح']),h('button',{type:'button',class:'atl-btn',onclick:function(){upd('rejected')}},['رفض']),h('button',{type:'button',class:'atl-btn',onclick:function(){upd('open')}},['فتح'])])]))})}).catch(function(){w.innerHTML='';w.appendChild(h('div',{class:'atl-note bad'},['مفيش اتصال']))})}
  load();return d}
 function askYes(msg,yes){var ov=document.createElement('div');ov.className='atl-ov';ov.setAttribute('role','dialog');ov.setAttribute('aria-modal','true');
  var bx=document.createElement('div');bx.className='atl-dlg';
