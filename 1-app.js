@@ -80,7 +80,7 @@ function srOrder(k,items){var o=srLoad();if(!o)return shuf(items);var now=Date.n
   else if(a&&q.key&&a!==it.a)due.push({it:it,pr:1.3+Math.random()*0.05,e:210});
   else if(a)wt.push({it:it,d:now+3*SRD});else nw.push(it)});
  due.sort(function(a,b){return tired?b.e-a.e:b.pr-a.pr});nw=shuf(nw);wt.sort(function(a,b){return a.d-b.d});
- var out=[],di=0,ni=0;while(di<due.length||ni<nw.length){if(di<due.length&&(out.length%10<7||ni>=nw.length))out.push(due[di++].it);else out.push(nw[ni++])}
+ var out=[],di=0,ni=0;while(di<due.length||ni<nw.length){if(di<due.length&&(out.length%3<2||ni>=nw.length))out.push(due[di++].it);else out.push(nw[ni++])}
  wt.forEach(function(x){out.push(x.it)});return out}
 function srMistSort(ml){var o=srLoad();if(!o)return ml;return ml.slice().sort(function(a,b){var ca=o.c[a.set.id+'|'+a.it.n],cb=o.c[b.set.id+'|'+b.it.n];return (ca?ca[2]:0)-(cb?cb[2]:0)})}
 function save(id,p,cnt){if(CUR&&CUR!=='~guest'){try{var ob=load(id),tm=tsGet(id),now=Date.now(),ch=false;Object.keys(p||{}).forEach(function(n){if(ob[n]!==p[n]){tm[n]=now;ch=true}});if(ch)lsset(tsKey(id),JSON.stringify(tm))}catch(e){}}var was=answeredCount(id);lsset('atlas.p.'+CUR+'.'+id,JSON.stringify(p));var inc=(typeof cnt==='number')?cnt:Object.keys(p||{}).length-was;if(inc>0&&CUR&&CUR!=='~guest'){markDay();lsset('atlas.goal.'+CUR,JSON.stringify({d:dayKey(),n:goalGet()+inc}));bdTick()}schedulePush()}
