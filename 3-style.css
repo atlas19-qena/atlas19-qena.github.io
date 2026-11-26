@@ -834,3 +834,7 @@ html[data-theme="dark"] .atl-acct .atl-top{background:transparent;box-shadow:non
 
 
 @media (max-height:700px){.atl-pn{padding:4px 0 calc(4px + env(safe-area-inset-bottom))}.atl-pn .atl-btn{padding-top:9px;padding-bottom:9px}}
+/* rt39 wide screens: shorter home tiles, room above the floating tab bar */
+@media (min-width:720px) and (min-height:701px){.atl-sqg{grid-template-columns:repeat(4,minmax(0,1fr))}.atl-sq{aspect-ratio:auto;height:auto;min-height:150px;max-height:200px}.atl-sqi img{width:48px;height:48px}.atl-sq b{font-size:15px}}
+@media (min-width:900px){.atl::after{content:"";display:block;height:96px}}
+@media (max-width:380px){.atl-toast{max-width:92vw;padding:10px 14px;font-size:14px;line-height:1.35;text-align:center}}
