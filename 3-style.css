@@ -832,3 +832,5 @@ html[data-theme="dark"] .atl-acct .atl-top{background:transparent;box-shadow:non
 .atl6-m.gl.on svg .a{stroke:#fff!important}
 .atl6-m.gl.on svg circle.a{fill:#fff!important}
 
+
+@media (max-height:700px){.atl-pn{padding:4px 0 calc(4px + env(safe-area-inset-bottom))}.atl-pn .atl-btn{padding-top:9px;padding-bottom:9px}}
