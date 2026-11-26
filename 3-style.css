@@ -823,3 +823,11 @@ html[data-theme="dark"] .atl-acct .atl-asi{background:#223052}
 html[data-theme="dark"] .atl-acct .atl-as.s5{background:linear-gradient(135deg,#18233b,#2e2030)}
 html[data-theme="dark"] .atl-acct .atl-pf{background:transparent;border:0;box-shadow:none}
 html[data-theme="dark"] .atl-acct .atl-top{background:transparent;box-shadow:none;border:0}
+.atl6-m.gl{filter:drop-shadow(0 3px 5px rgba(10,25,60,.35))}
+.atl6-m.gl.t4,.atl6-m.gl.t5{filter:drop-shadow(0 3px 8px rgba(240,170,40,.55))}
+.atl6-m.gl svg path,.atl6-m.gl svg circle,html[data-theme="dark"] .atl6-m.gl svg path,html[data-theme="dark"] .atl6-m.gl svg circle{stroke:#ffe29a;stroke-width:2.4;fill:none}
+.atl6-m.gl svg .a,html[data-theme="dark"] .atl6-m.gl svg .a{stroke:#fff}
+.atl6-m.gl svg circle.a,html[data-theme="dark"] .atl6-m.gl svg circle.a{fill:#fff;stroke:#fff}
+.atl6-m.gl.on svg path,.atl6-m.gl.on svg circle{stroke:#ffe29a!important}
+.atl6-m.gl.on svg .a{stroke:#fff!important}
+.atl6-m.gl.on svg circle.a{fill:#fff!important}
