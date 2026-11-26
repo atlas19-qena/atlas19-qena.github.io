@@ -286,10 +286,10 @@ function studyView(){
 
 var BC=[
  {k:'ans',t:'إجابات',th:[1,25,100,300,1000],nm:['أول خطوة','بدأت تسخن','ماشي كويس','ماكينة أسئلة','أسطورة الحل'],ds:'حل # سؤال'},
- {k:'cor',t:'إجابات صح',th:[10,50,150,400,800],nm:['إجابة صح','دماغ شغالة','مركّز','قنّاص','خبير'],ds:'# إجابة صح'},
+ {k:'cor',t:'إجابات صح',th:[10,50,150,400,800],nm:['أول صح','دماغ شغالة','مركّز','قنّاص','خبير'],ds:'# إجابة صح'},
  {k:'acc',t:'الدقة',th:[60,70,80,90,95],nm:['ثابت','متمكن','دقيق','حاد','شبه كامل'],ds:'دقة #% بعد 50 إجابة'},
- {k:'goal',t:'هدف اليوم',th:[1,3,7,15,30],nm:['هدف اليوم','٣ أهداف','أسبوع أهداف','نص شهر','شهر كامل'],ds:'حقق هدف اليوم # مرة'},
- {k:'sets',t:'الكويزات',th:[1,2,3,5,8],nm:['أول كويز','كويزين','٣ كويزات','٥ كويزات','٨ كويزات'],ds:'خلّص # كويز كامل'},
+ {k:'goal',t:'هدف اليوم',th:[1,3,7,15,30],nm:['يوم ناجح','ثلاثية','أسبوع ذهبي','نص شهر التزام','شهر بلا تراخي'],ds:'حقق هدف اليوم # مرة'},
+ {k:'sets',t:'الكويزات',th:[1,2,3,5,8],nm:['أول كويز','سخّنت المحرك','ماسك الإيقاع','بطل الكويزات','ملك الكويزات'],ds:'خلّص # كويز كامل'},
  {k:'fx',t:'تصحيح الأخطاء',th:[1,5,15,40,100],nm:['صححت غلطة','بتتعلم','محقق','مصحح محترف','مفيش غلطة تفلت'],ds:'صحّح # غلطة من أخطائي'}];
 var BG={ans:[['path','M6.5 25.5 L8 19.5 L20.5 7 Q22 5.5 23.8 7.2 L24.8 8.2 Q26.5 10 25 11.5 L12.5 24 Z'],['path','M18 9.5 L22.5 14','a']],
  cor:[['circle',{cx:16,cy:16,r:11}],['path','M10.5 16.5 L14.5 20.5 L22 12','a']],
@@ -298,9 +298,12 @@ var BG={ans:[['path','M6.5 25.5 L8 19.5 L20.5 7 Q22 5.5 23.8 7.2 L24.8 8.2 Q26.5
  sets:[['path','M16 5 L27 11 L16 17 L5 11 Z'],['path','M5 16 L16 22 L27 16','a'],['path','M5 21 L16 27 L27 21']],
  fx:[['path','M24.5 13.5 A9 9 0 1 0 25 19'],['path','M25 6.5 V13.5 H18','a']]};
 function bSvg(k,tier,on){var NS='http://www.w3.org/2000/svg',s=document.createElementNS(NS,'svg');s.setAttribute('viewBox','0 0 48 48');s.setAttribute('aria-hidden','true');s.setAttribute('class','atl6-m t'+tier+(on?' on':' off'));
- var hx=document.createElementNS(NS,'path');hx.setAttribute('d','M24 3 L42 13.5 V34.5 L24 45 L6 34.5 V13.5 Z');hx.setAttribute('class','hx');s.appendChild(hx);
- if(on&&tier>=4){var h2=document.createElementNS(NS,'path');h2.setAttribute('d','M24 8 L37.5 15.8 V32.2 L24 40 L10.5 32.2 V15.8 Z');h2.setAttribute('class','in');s.appendChild(h2)}
- var g=document.createElementNS(NS,'svg');g.setAttribute('x','12');g.setAttribute('y','12');g.setAttribute('width','24');g.setAttribute('height','24');g.setAttribute('viewBox','0 0 32 32');
+ if(on){var RM={1:['#c9d6ee','#6f88b5'],2:['#5fe0a0','#1f8a57'],3:['#6fb0ff','#2160d0'],4:['#ffe08a','#c48a1a'],5:['#ffb36b','#e0561f']}[tier]||['#c9d6ee','#6f88b5'];
+  s.setAttribute('class','atl6-m gl t'+tier+' on');
+  s.insertAdjacentHTML('afterbegin','<defs><linearGradient id="bgr'+tier+'" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="'+RM[0]+'"/><stop offset="1" stop-color="'+RM[1]+'"/></linearGradient><linearGradient id="bgn" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2f4c96"/><stop offset="1" stop-color="#0d1d47"/></linearGradient></defs><path d="M24 2.5 L42.5 13.2 V34.8 L24 45.5 L5.5 34.8 V13.2 Z" fill="url(#bgr'+tier+')"/><path d="M24 6.2 L39.3 15 V33 L24 41.8 L8.7 33 V15 Z" fill="url(#bgn)"/><path d="M24 6.2 L39.3 15 V23 Q24 29.5 8.7 23 V15 Z" fill="#fff" fill-opacity=".14"/>'+(tier>=4?'<circle cx="11" cy="9" r="1.7" fill="#ff7a8a"/><circle cx="37" cy="9" r="1.7" fill="#6fe0ff"/><circle cx="24" cy="3.2" r="1.4" fill="#fff"/>':''));
+ }else{var hx=document.createElementNS(NS,'path');hx.setAttribute('d','M24 3 L42 13.5 V34.5 L24 45 L6 34.5 V13.5 Z');hx.setAttribute('class','hx');s.appendChild(hx)}
+ if(false){var h2=document.createElementNS(NS,'path');h2.setAttribute('d','M24 8 L37.5 15.8 V32.2 L24 40 L10.5 32.2 V15.8 Z');h2.setAttribute('class','in');s.appendChild(h2)}
+ var g=document.createElementNS(NS,'svg');g.setAttribute('x',on?'10':'12');g.setAttribute('y',on?'10':'12');g.setAttribute('width',on?'28':'24');g.setAttribute('height',on?'28':'24');g.setAttribute('viewBox','0 0 32 32');
  BG[k].forEach(function(p){var e=document.createElementNS(NS,p[0]);if(typeof p[1]==='string')e.setAttribute('d',p[1]);else for(var a in p[1])e.setAttribute(a,p[1][a]);if(p[2])e.setAttribute('class',p[2]);g.appendChild(e)});
  s.appendChild(g);return s}
 function bMet(g){var ka=0,kc=0,sets=0;if(!g.m)g.m={};
