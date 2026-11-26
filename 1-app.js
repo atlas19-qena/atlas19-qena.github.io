@@ -230,7 +230,7 @@ function suggest(){var ml=mistakesList(),best=null,bs=-1;SUBJECTS.forEach(functi
 function goalGet(){try{var o=JSON.parse(lsget('atlas.goal.'+CUR)||'{}');if(o&&o.d===dayKey())return o.n|0}catch(e){}return 0}
 var GOAL=20;
 function goalTarget(){var n=parseInt(lsget('atlas.goalset.'+CUR),10);return n>=5&&n<=500?n:20}
-function goalSet(n){n=Math.max(5,Math.min(500,n|0));lsset('atlas.goalset.'+CUR,String(n));GOAL=n;render()}
+function goalSet(n){n=Math.max(5,Math.min(500,n|0));lsset('atlas.goalset.'+CUR,String(n));GOAL=n;if(state.view==='acct'){var g1=document.querySelector('.atl-gn');if(g1){g1.textContent=String(n);[].forEach.call(document.querySelectorAll('.atl-gp'),function(b){b.classList.toggle('on',b.textContent===String(n))});return}}render()}
 function answeredCount(id){var p;try{p=JSON.parse(lsget('atlas.p.'+CUR+'.'+id)||'{}')}catch(e){p={}}return Object.keys(p).length}
 function tabsEl(cur){var T=[['home','الرئيسية'],['study','المذاكرة'],['acct','حسابك']];var kids=T.map(function(t){return h('button',{type:'button',class:'atl-tab'+(t[0]===cur?' on':''),'data-t':t[0],'aria-current':t[0]===cur?'page':null,onclick:function(){if(t[0]!==window.__tab)go(t[0])}},[tico(t[0]),h('span',{},[t[1]])])});kids.push(h('i',{class:'atl-ti','aria-hidden':'true'}));return h('nav',{class:'atl-tabs','aria-label':'التنقل'},kids)}
 function tabDot(n,c,now){var b=n.querySelector('.atl-tab[data-t="'+c+'"]'),d=n.querySelector('.atl-ti');if(!b||!d)return;var r=b.getBoundingClientRect(),nr=n.getBoundingClientRect();if(now)d.style.transition='none';d.style.transform='translateX('+Math.round(r.left-nr.left+r.width/2-2.5)+'px)';if(now){void d.offsetWidth;d.style.transition=''}}
@@ -363,10 +363,15 @@ function badgesView(){var g=bdGet();bdCheck(g,true);g=bdGet();var all=bAll(g),on
   if(nx>=0){var cur=m[c.k],t2=c.th[nx],pc=Math.min(100,Math.round(cur*100/t2));sec.appendChild(h('div',{class:'atl6-pg'},[h('div',{class:'atl-bar'},[h('i',{style:'width:'+pc+'%'})]),h('small',{},[Math.min(cur,t2)+' / '+t2+(c.k==='acc'&&m.ka<50?' (محتاج 50 إجابة على الأقل)':'')])]))}
   w.appendChild(sec)});
  var d=h('div');d.appendChild(top('شاراتك',on+' من '+all.length,function(){go('acct')}));d.appendChild(w);d.appendChild(tabs('acct'));return d}
+function acctStats(){var ans=0,a=0,c=0;Object.keys(SETS).forEach(function(k){var q=SETS[k],p=load(k);q.items.forEach(function(it){if(p[it.n]){ans++;if(q.key){a++;if(p[it.n]===it.a)c++}}})});
+ var acc=a?Math.round(c*100/a)+'%':'—';
+ var cd=function(tag,cls,ic,l,v,fn){var o={class:'atl-as '+cls};if(fn){o.type='button';o.onclick=fn}return h(tag,o,[h('div',{class:'atl-ast'},[h('small',{},[l]),h('b',{},[v])]),h('span',{class:'atl-asi','aria-hidden':'true'},[ic])])};
+ return h('div',{class:'atl-as-g'},[cd('div','s1','✅','تم الحل',String(ans)),cd('div','s2','🎯','نسبة الصح',acc),cd('div','s5','❌','أخطاء',String(mistakesList().length)),cd('button','s3','⭐','المفضلة',String(favItems().length),function(){go('fav')}),cd('div','s4','🔥','أيام متتالية',String(streakNow()))])}
+function acctBanner(){var d=h('div',{class:'atl-ahd','aria-hidden':'true'},[h('span',{class:'atl-dnl'}),h('span',{class:'atl-dnr'})]);return d}
 function acctView(){
  var wrap=h('div',{class:'atl-wrap atl-tw',style:'padding-top:14px'});
  var dn0=dispName(),pbtn=function(cls,ic,t,fn){return h('button',{type:'button',class:'atl-pb'+cls,onclick:fn},[h('i',{},[ic]),h('span',{},[t])])};
- wrap.appendChild(h('div',{class:'atl-pf'},[h('div',{class:'atl-pr'},[avEl('',avOk()),h('div',{class:'atl-pn2'},[h('small',{},['مسجّل دخول باسم']),h('b',{},[dn0])])]),h('div',{class:'atl-pa atl-pa2'},[pbtn('','📋','كود النقل',function(){go('xfer')}),pbtn('','🔁','تبديل الحساب',function(){ISADM=false;setCur('');go('login')})])]));
+ wrap.appendChild(h('div',{class:'atl-pf'},[h('div',{class:'atl-pr'},[avEl('',avOk()),h('div',{class:'atl-pn2'},[h('small',{},['طالب طب']),h('b',{},[dn0])])]),acctStats(),h('div',{class:'atl-pa atl-pa2'},[pbtn('','📋','كود النقل',function(){go('xfer')}),pbtn('','🔁','تبديل الحساب',function(){ISADM=false;setCur('');go('login')})])]));
  var bsum=bdSummary();if(bsum)wrap.appendChild(bsum);
  GOAL=goalTarget();var gb=function(t,d,lab){return h('button',{type:'button',class:'atl-gb','aria-label':lab,onclick:function(){goalSet(GOAL+d)}},[t])};
  var gps=h('div',{class:'atl-gps'},[10,20,30,50].map(function(n){return h('button',{type:'button',class:'atl-gp'+(n===GOAL?' on':''),onclick:function(){goalSet(n)}},[String(n)])}));
@@ -374,7 +379,7 @@ function acctView(){
  if(ISADM)wrap.appendChild(h('button',{type:'button',class:'atl-card',onclick:function(){go('admin')}},[ico('🛡️'),h('span',{style:'flex:1'},[h('div',{class:'t'},['لوحة الأدمن']),h('div',{class:'s'},['دخول، بلاغات، محرر الأسئلة'])])]));
  var fg=pbtn(' dg','🗑️','نسيان الجهاز',function(){askYes('هيمسح كل الحسابات والتقدم من الجهاز ده بس (الصور بتفضل)، حسابك على السيرفر مش بيتمسح. متأكد؟',function(){try{var ks=[];for(var i=0;i<localStorage.length;i++)ks.push(localStorage.key(i));ks.forEach(function(k){if(k&&k.indexOf('atlas.')===0&&k.indexOf('atlas.av.')!==0)localStorage.removeItem(k)})}catch(e){}for(var k2 in store)delete store[k2];ISADM=false;setCur('');go('login')})});
  fg.classList.add('atl-fgs');wrap.appendChild(fg);
- var d=h('div');d.appendChild(pageHead('حسابك'));d.appendChild(wrap);d.appendChild(tabs('acct'));return d}
+ var d=h('div',{class:'atl-acct'});d.appendChild(acctBanner());d.appendChild(pageHead('حسابك'));d.appendChild(wrap);d.appendChild(tabs('acct'));return d}
 var NEWS=[
  {d:'2026-11-26',t:'تحديث الرئيسية: كارت هدف جديد بجمل متغيرة، نسبة الصح، واختبار عشوائي بتختار عدد الأسئلة والوقت والمواد',v:'home'},
  {d:'2026-11-26',t:'الرئيسية بقت بمربعات: اختبار عشوائي، مراجعة الأخطاء، اقترح، وأكمل من حيث وقفت',v:'home'},
