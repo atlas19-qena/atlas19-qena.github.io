@@ -83,7 +83,7 @@ function srOrder(k,items){var o=srLoad();if(!o)return shuf(items);var now=Date.n
  var out=[],di=0,ni=0;while(di<due.length||ni<nw.length){if(di<due.length&&(out.length%10<7||ni>=nw.length))out.push(due[di++].it);else out.push(nw[ni++])}
  wt.forEach(function(x){out.push(x.it)});return out}
 function srMistSort(ml){var o=srLoad();if(!o)return ml;return ml.slice().sort(function(a,b){var ca=o.c[a.set.id+'|'+a.it.n],cb=o.c[b.set.id+'|'+b.it.n];return (ca?ca[2]:0)-(cb?cb[2]:0)})}
-function save(id,p){if(CUR&&CUR!=='~guest'){try{var ob=load(id),tm=tsGet(id),now=Date.now(),ch=false;Object.keys(p||{}).forEach(function(n){if(ob[n]!==p[n]){tm[n]=now;ch=true}});if(ch)lsset(tsKey(id),JSON.stringify(tm))}catch(e){}}var was=answeredCount(id);lsset('atlas.p.'+CUR+'.'+id,JSON.stringify(p));var inc=Object.keys(p||{}).length-was;if(inc>0&&CUR&&CUR!=='~guest'){markDay();lsset('atlas.goal.'+CUR,JSON.stringify({d:dayKey(),n:goalGet()+inc}));bdTick()}schedulePush()}
+function save(id,p,cnt){if(CUR&&CUR!=='~guest'){try{var ob=load(id),tm=tsGet(id),now=Date.now(),ch=false;Object.keys(p||{}).forEach(function(n){if(ob[n]!==p[n]){tm[n]=now;ch=true}});if(ch)lsset(tsKey(id),JSON.stringify(tm))}catch(e){}}var was=answeredCount(id);lsset('atlas.p.'+CUR+'.'+id,JSON.stringify(p));var inc=(typeof cnt==='number')?cnt:Object.keys(p||{}).length-was;if(inc>0&&CUR&&CUR!=='~guest'){markDay();lsset('atlas.goal.'+CUR,JSON.stringify({d:dayKey(),n:goalGet()+inc}));bdTick()}schedulePush()}
 function dispName(){if(CUR==='~guest')return 'ضيف';var p=profs()[CUR];return p?p.name:CUR}
 function setCur(k){CUR=k;if(k)lsset('atlas.cur',k);else{store['k:atlas.cur']='';try{localStorage.removeItem('atlas.cur')}catch(e){}}}
 function mistakesList(){var out=[];Object.keys(SETS).forEach(function(k){var q=SETS[k];if(!q.key)return;var p=load(k);q.items.forEach(function(it,i){if(p[it.n]&&p[it.n]!==it.a)out.push({set:q,it:it,idx:i,pick:p[it.n]})})});return out}
@@ -314,7 +314,7 @@ function rsubView(){var L2=rsubList(),w=h('div',{class:'atl-wrap atl-tw',style:'
  w.appendChild(chips);
  var ks=[];L2.forEach(function(x){if(RSEL.indexOf(x.id)>=0)rsubKeys(x).forEach(function(k){ks.push(k)})});
  var avail=0;ks.forEach(function(k){avail+=SETS[k].items.length});
- var go2=h('button',{type:'button',class:'atl-btn p',style:'width:100%;margin-top:12px'+(ks.length?'':';opacity:.5'),onclick:function(){if(ks.length)rsubStart(ks)}},[ks.length?'ابدأ بالمواد المختارة':'اختار مادة واحدة على الأقل']);
+ var go2=h('button',{type:'button',class:'atl-btn p',style:'width:100%;margin-top:12px'+(ks.length?'':';opacity:.5'),onclick:function(){if(ks.length)rsubStart(ks)}},[ks.length?'ابدأ بالمواد المختارة ('+Math.min(rqN(),avail)+' سؤال، '+rqT()+' دقيقة)':'اختار مادة واحدة على الأقل']);
  w.appendChild(go2);
  if(ks.length&&avail<rqN())w.appendChild(h('div',{class:'atl-note warn',style:'margin-top:10px'},['المواد دي فيها '+avail+' سؤال بس، فالاختبار هيكون '+avail+' سؤال.']));
  var d=h('div');d.appendChild(top('اختبار عشوائي','الخطوة 4 من 4 · المواد',function(){go('rtype')}));d.appendChild(w);return d}
@@ -462,6 +462,7 @@ var NEWS=[
  {d:'2026-11-25',t:'Daily goal: set it from the Account tab',v:'acct'},
  {d:'2026-11-25',t:'Badges and profile photo now follow your account on any device',v:'badges'}
 ];
+function exc(q){q=String(q||'').replace(/\s+/g,' ').trim();return q.length>60?q.slice(0,60)+'…':q}
 function goalMsg(p,n,G){var B=[
  [0,0,['يلا نبدأ، أول سؤال هو الأصعب','ابدأ بسؤال واحد وهتكمل لوحدك','النهارده لسه ما بدأتش، وقتك الآن','كل رحلة بتبدأ بخطوة، افتح سؤال']],
  [1,29,['بداية حلوة، كمّل','ماشي كويس، استمر','خطوة ورا خطوة، أنت على الطريق','كمّل، لسه بدري وأنت ماشي صح']],
@@ -474,7 +475,7 @@ function home(){
  GOAL=goalTarget();var acc=(function(){var a=0,c=0;Object.keys(SETS).forEach(function(k){var q=SETS[k];if(!q.key)return;var p=load(k);q.items.forEach(function(it){if(p[it.n]){a++;if(p[it.n]===it.a)c++}})});return a?Math.round(c*100/a)+'%':'—'})();var ml=mistakesList(),lg=lastGet(),gn=goalGet(),gp=Math.min(100,Math.round(gn*100/GOAL));
  var hero=h('div',{class:'atl-hero atl-hh'},[h('div',{class:'atl-hr'},[brandEl(),thBtn()]),h('div',{class:'atl-hg atl3-hgp'},[h('button',{type:'button','aria-label':'حسابي',class:'atl-hav',onclick:function(){go('acct')}},[avEl('atl3-sm',false)]),h('div',{},[h('small',{},['أهلاً يا '+dispName()+' 👋']),h('p',{},['مراجعة العملي · موديول الهيماتولوجي'])])])]);
  var wrap=h('div',{class:'atl-wrap atl-tw'});
- var gpc=Math.min(100,Math.round(gn*100/GOAL)),gmsg=goalMsg(gpc,gn,GOAL);
+ var gpc=Math.min(100,Math.round(gn*100/GOAL)),gmsg=goalMsg(gpc,gn,GOAL)+(gn<GOAL?' · فاضل '+(GOAL-gn)+' سؤال':'');
  wrap.appendChild(h('div',{class:'atl-g2'},[h('div',{class:'atl-g2h'},[h('b',{class:'atl-g2t'},['هدفك اليومي']),h('span',{class:'atl-g2n'},[Math.min(gn,GOAL)+' / '+GOAL])]),h('div',{class:'atl-g2b'},[h('i',{style:'width:'+gpc+'%'})]),h('div',{class:'atl-g2m'},[gmsg])]));
  wrap.appendChild(h('div',{class:'atl-stats atl-stats3'},[h('div',{class:'atl-stat st-a'},[h('b',{},[String(ans)]),h('span',{},['تم الحل'])]),h('div',{class:'atl-stat st-b'},[h('b',{},[acc]),h('span',{},['نسبة الصح'])]),h('button',{type:'button',class:'atl-stat atl-stat-fav',onclick:function(){go('fav')},'aria-label':'المفضلة'},[h('b',{},['⭐ '+favItems().length]),h('span',{},['المفضلة'])])]));
 
@@ -549,11 +550,11 @@ var MQ=null;
 function mqStart(sid){var ml=srMistSort(mistakesList()).filter(function(m){if(!sid)return true;var x=subjOfSet(m.set.id);return x&&x.id===sid});if(!ml.length)return;MQ={l:ml.map(function(m){return {s:m.set.id,n:m.it.n}}),i:0,p:'',ok:0,bad:0,sid:sid||''};go('mqz')}
 function mqView(){var w=h('div',{class:'atl-wrap',style:'padding-top:14px'}),back=function(){MQ=null;goBack('mist:prac')};
  if(!MQ||!MQ.l.length){var d0=h('div');d0.appendChild(top('اختبار أخطائي',null,back));return d0}
- if(MQ.i>=MQ.l.length){w.appendChild(h('div',{class:'atl-note ok'},['خلصت الاختبار: '+MQ.ok+' صح من '+MQ.l.length+(MQ.bad?'. اللي غلطت فيه لسه في أخطائي.':'. كل أخطائك اتصححت!')]));w.appendChild(h('button',{type:'button',class:'atl-btn p',style:'width:100%',onclick:back},['رجوع لأخطائي']));var d1=h('div');d1.appendChild(top('اختبار أخطائي',MQ.l.length+' سؤال',back));d1.appendChild(w);return d1}
+ if(MQ.i>=MQ.l.length){w.appendChild(h('div',{class:'atl-note ok'},['خلصت الاختبار: '+MQ.ok+' صح من '+MQ.l.length+(MQ.bad?'. اللي غلطت فيه لسه في أخطائي.':'. كل أخطائك اتصححت!')]));if(MQ.res&&MQ.res.length){w.appendChild(h('h2',{},['اللي جاوبته']));MQ.res.forEach(function(r){var st=SETS[r.s],it2=st&&st.items.filter(function(x){return x.n===r.n})[0];if(!it2)return;w.appendChild(h('div',{class:'atl-card'},[h('span',{'aria-hidden':'true'},[r.ok?'✅':'❌']),h('span',{style:'flex:1'},[h('div',{class:'t'},['Q'+r.n+' · '+exc(it2.q)]),h('div',{class:'s'},[r.ok?'اتصحح وبقى من إجاباتك الصح':'لسه غلط، والصح '+it2.a])])]))})}w.appendChild(h('button',{type:'button',class:'atl-btn p',style:'width:100%',onclick:back},['رجوع لأخطائي']));var d1=h('div');d1.appendChild(top('اختبار أخطائي',MQ.l.length+' سؤال',back));d1.appendChild(w);return d1}
  var cur=MQ.l[MQ.i],set=SETS[cur.s],it=set.items.filter(function(x){return x.n===cur.n})[0],L2='ABCDE',pk=MQ.p;
  var c=h('div',{class:'atl-q'},[h('div',{class:'atl-qm'},[h('span',{},[set.title+' · Question '+it.n])]),h('div',{style:'margin:6px 0'},[srcTag(it)]),h('p',{class:'atl-qt'},[it.q])]);
  it.o.forEach(function(o,i){var l=L2[i],cls='atl-o';if(pk){if(l===it.a)cls+=' ok';else if(l===pk)cls+=' bad'}
-  c.appendChild(h('button',{type:'button',class:cls,style:'width:100%;text-align:inherit',onclick:function(){if(MQ.p)return;MQ.p=l;srAns(cur.s,it.n,l===it.a);var p=load(cur.s);if(l===it.a){delete p[it.n];MQ.ok++;if(bdOn()){var gx=bdGet();gx.fx=(gx.fx||0)+1;bdSet(gx)}}else{p[it.n]=l;MQ.bad++}save(cur.s,p);render()}},[h('span',{class:'l'},[l]),h('span',{},[o])]))});
+  c.appendChild(h('button',{type:'button',class:cls,style:'width:100%;text-align:inherit',onclick:function(){if(MQ.p)return;MQ.p=l;srAns(cur.s,it.n,l===it.a);(MQ.res=MQ.res||[]).push({s:cur.s,n:it.n,ok:l===it.a});var p=load(cur.s);if(l===it.a){p[it.n]=it.a;MQ.ok++;if(bdOn()){var gx=bdGet();gx.fx=(gx.fx||0)+1;bdSet(gx)}}else{p[it.n]=l;MQ.bad++}save(cur.s,p,1);render()}},[h('span',{class:'l'},[l]),h('span',{},[o])]))});
  w.appendChild(c);
  if(pk)w.appendChild(h('button',{type:'button',class:'atl-btn p',style:'width:100%;margin-top:8px',onclick:function(){MQ.i++;MQ.p='';render();window.scrollTo(0,0)}},[MQ.i+1>=MQ.l.length?'النتيجة':'التالي']));
  var d=h('div');d.appendChild(top('اختبار أخطائي',(MQ.i+1)+' / '+MQ.l.length,function(){askYes('تخرج من الاختبار؟',back)}));d.appendChild(w);return d}
@@ -866,7 +867,7 @@ function rndView(){if(!RQ)RQ=buildRnd();var R=RQ,w=h('div',{class:'atl-wrap'}),d
   w.appendChild(h('div',{class:'atl-stats atl-stats3'},[h('div',{class:'atl-stat'},[h('b',{},[cor+' / '+R.list.length]),h('span',{},['الدرجة'])]),h('div',{class:'atl-stat'},[h('b',{},[pc+'%']),h('span',{},['النسبة'])]),R.fin?h('div',{class:'atl-stat'},[h('b',{},[fmtT(R.used)]),h('span',{},['الوقت المستخدم'])]):h('div',{class:'atl-stat'},[h('b',{},[String(R.list.length-ans)]),h('span',{},['من غير إجابة'])])]));
   var wr=R.list.filter(function(x){return x.pick!==x.it.a});
   if(wr.length){w.appendChild(h('h2',{},['الأسئلة اللي غلطت فيها أو سبتها']));
-   wr.forEach(function(x){var i=R.list.indexOf(x);w.appendChild(h('button',{type:'button',class:'atl-card',onclick:function(){R.done=false;R.i=i;window.__qin=true;render();window.scrollTo(0,0)}},[ico(nm(x).slice(0,3)),h('span',{style:'flex:1'},[h('div',{class:'t'},['سؤال '+(i+1)]),h('div',{class:'s'},[x.pick?'اخترت '+x.pick+' والصح '+x.it.a:'من غير إجابة، والصح '+x.it.a])])]))})}
+   wr.forEach(function(x){var i=R.list.indexOf(x);w.appendChild(h('button',{type:'button',class:'atl-card',onclick:function(){R.done=false;R.i=i;window.__qin=true;render();window.scrollTo(0,0)}},[ico(nm(x).slice(0,3)),h('span',{style:'flex:1'},[h('div',{class:'t'},['سؤال '+(i+1)+' · '+exc(x.it.q)]),h('div',{class:'s'},[x.pick?'اخترت '+x.pick+' والصح '+x.it.a:'من غير إجابة، والصح '+x.it.a])])]))})}
   else w.appendChild(h('div',{class:'atl-note ok'},['ممتاز! كل إجاباتك صح.']));
   w.appendChild(h('div',{class:'atl-nav'},[h('button',{type:'button',class:'atl-btn p',onclick:function(){rtPause(R);RQ=buildRnd();window.__qin=true;render();window.scrollTo(0,0)}},['اختبار عشوائي جديد'])]));
   d.appendChild(top('نتيجة الاختبار العشوائي',ans+' / '+R.list.length+' answered',function(){rtPause(R);go('home')}));d.appendChild(w);return d}
@@ -881,7 +882,7 @@ function rndView(){if(!RQ)RQ=buildRnd();var R=RQ,w=h('div',{class:'atl-wrap'}),d
  var card=h('div',{class:'atl-q'},[h('div',{class:'atl-qm'},[h('span',{},['Question '+(R.i+1)+' of '+R.list.length]),h('span',{},['· '+nm(x)])]),
   (set.images&&set.images[it.n-1])?h('img',{class:'atl-qi',src:set.images[it.n-1],decoding:'async',fetchpriority:'high',alt:'Image for question'}):null,h('p',{class:'atl-qt'},[it.q])]);
  it.o.forEach(function(o,i){var l=L[i],cls='atl-o';if(x.pick){if(l===it.a)cls+=' ok';else if(l===x.pick)cls+=' bad'}
-  card.appendChild(h('button',{type:'button',class:cls,onclick:function(){if(x.pick)return;x.pick=l;if(SETS[x.k]&&SETS[x.k].key)srAns(x.k,it.n,l===it.a);setFx(l===it.a);render()}},[h('span',{class:'l'},[l]),h('span',{},[o])]))});
+  card.appendChild(h('button',{type:'button',class:cls,onclick:function(){if(x.pick)return;x.pick=l;if(SETS[x.k]&&SETS[x.k].key){srAns(x.k,it.n,l===it.a);var pr2=load(x.k);pr2[it.n]=l;save(x.k,pr2,1)}setFx(l===it.a);render()}},[h('span',{class:'l'},[l]),h('span',{},[o])]))});
  if(x.pick)card.appendChild(x.pick===it.a?h('div',{class:'atl-note ok'},['إجابة صحيحة ('+it.a+')']):h('div',{class:'atl-note bad'},['غلط. الإجابة الصحيحة: '+it.a]));
  card.appendChild(favBtn(x.k,it.n));
  card.appendChild(reportBtn(x.k,it.n));
