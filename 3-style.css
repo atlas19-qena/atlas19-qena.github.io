@@ -763,3 +763,21 @@ html[data-theme="dark"] .atl-sq b{color:#fff}
 .atl-sqi img{width:40px;height:40px}
 .atl-sq b{font-size:11px;line-height:1.25}
 .atl-sq small{display:none!important}
+
+/* goal card v2 + stats colours + random setup */
+.atl-g2{background:linear-gradient(135deg,#27487f,#162e58);color:#fff;border-radius:20px;padding:14px 16px 12px;margin:0 0 12px;box-shadow:0 8px 22px rgba(20,40,75,.22)}
+.atl-g2h{display:flex;align-items:center;justify-content:space-between;gap:10px;direction:rtl}
+.atl-g2t{font-size:16px;color:#fff}
+.atl-g2n{font-size:26px;font-weight:800;color:#e6c88f;direction:ltr}
+.atl-g2b{height:9px;border-radius:6px;background:rgba(255,255,255,.28);margin:10px 0 8px;overflow:hidden;direction:rtl}
+.atl-g2b i{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,#c9a46a,#e6c88f)}
+.atl-g2m{font-size:12.5px;color:rgba(255,255,255,.88)}
+.atl-stat.st-a b{color:#2f5aa8}
+.atl-stat.st-b b{color:#2f9b6a}
+html[data-theme="dark"] .atl-stat.st-a b{color:#7fa6ee}
+.atl-rq{padding:10px 14px}
+.atl-rqrow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 0}
+.atl-rqrow+.atl-rqrow{border-top:1px solid var(--line)}
+.atl-rqrow .atl-gstep{margin:0;gap:12px}
+.atl-rqrow .atl-gb{width:38px;height:38px}
+.atl-rqrow .atl-gn{min-width:34px;text-align:center;font-weight:800;font-size:18px}
