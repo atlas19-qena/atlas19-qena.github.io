@@ -837,7 +837,7 @@ html[data-theme="dark"] .atl-acct .atl-top{background:transparent;box-shadow:non
 @media (min-width:900px){.atl::after{content:"";display:block;height:96px}}
 @media (max-width:380px){.atl-toast{max-width:92vw;padding:10px 14px;font-size:14px;line-height:1.35;text-align:center}}
 /* Account header: wide horizontal rotating DNA behind the avatar (animated webp, still image for reduced motion) */
-.atl-acct .atl-dnl,.atl-acct .atl-dnr{-webkit-mask-image:linear-gradient(to right,transparent,#000 22%)!important;mask-image:linear-gradient(to right,transparent,#000 22%)!important;opacity:1;top:56px;height:113px;width:196px;background-size:100% 100%;background-position:center;background-repeat:no-repeat;background-image:url(img/1-dna-spin-h.webp)}
+.atl-acct .atl-dnl,.atl-acct .atl-dnr{-webkit-mask-image:linear-gradient(to right,transparent,#000 22%)!important;mask-image:linear-gradient(to right,transparent,#000 22%)!important;opacity:1;top:56px;height:113px;width:196px;background-size:100% 100%;background-position:center;background-repeat:no-repeat;background-image:url(img/1-3-dna-spin-hq.webp)}
 .atl-acct .atl-dnl{left:0}
 .atl-acct .atl-dnr{right:0;transform:scaleX(-1)}
 @media (prefers-reduced-motion:reduce){.atl-acct .atl-dnl,.atl-acct .atl-dnr{background-image:url(img/2-dna-still-h.webp)}}
