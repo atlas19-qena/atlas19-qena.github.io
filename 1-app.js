@@ -133,7 +133,7 @@ function goBack(def){var p=NAV.length>=2?NAV[NAV.length-2]:'';if(p&&p!=='login')
 function tabGo(nx,d,from){TABY[from]=window.scrollY||0;window.__tab=nx;syncTabs();app.classList.add('atl-vt');if(app.firstChild)app.firstChild.classList.add('atl-tout-'+d);
  setTimeout(function(){state={view:nx,pos:0,sec:'',wrong:false};renderCore();window.scrollTo(0,TABY[nx]||0);spawnFx();var nu=app.firstChild;if(nu)nu.classList.add('atl-tin-'+d);setTimeout(function(){app.classList.remove('atl-vt')},300)},90)}
 var ARM=0;try{window.addEventListener('popstate',function(){ARM=0;if(CUR&&NAV.length>=2)goBack('home')})}catch(e){}
-function go(v){if(!ARM){try{history.pushState({a:1},'');ARM=1}catch(e){}}var dir=navDir(v),gp=GOPOS;GOPOS=0;var nx={view:v,pos:gp,sec:'',wrong:false};
+function go(v){var dir=navDir(v);if(!ARM&&(dir!=='back'||NAV.length>=2)){try{history.pushState({a:1},'');ARM=1}catch(e){}}var gp=GOPOS;GOPOS=0;var nx={view:v,pos:gp,sec:'',wrong:false};
  if(TABIX[v]!==undefined&&TABIX[state.view]!==undefined&&TABIX[v]!==TABIX[state.view]&&!RM.matches&&app.firstChild&&!app.classList.contains('atl-vt')){tabGo(v,TABIX[v]>TABIX[state.view]?'f':'b',state.view);return}
  if(RM.matches||!app.firstChild||app.classList.contains('atl-vt')){state=nx;render();window.scrollTo(0,0);return}
  app.classList.add('atl-vt');
