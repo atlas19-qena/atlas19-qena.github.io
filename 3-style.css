@@ -758,3 +758,8 @@ html[data-theme="dark"] .atl-sq b{color:#fff}
 .atl-sqi img{width:44px;height:44px}
 .atl-sq b{font-size:12.5px;line-height:1.25}
 .atl-sq small{display:none!important}
+.atl-sqg{grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.atl-sq{width:auto;height:auto;aspect-ratio:1/1;padding:6px 3px;border-radius:16px;gap:4px}
+.atl-sqi img{width:40px;height:40px}
+.atl-sq b{font-size:11px;line-height:1.25}
+.atl-sq small{display:none!important}
