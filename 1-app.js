@@ -464,6 +464,7 @@ function acctView(){
  fg.classList.add('atl-fgs');wrap.appendChild(fg);
  var d=h('div',{class:'atl-acct'});d.appendChild(acctBanner());d.appendChild(pageHead('حسابك'));d.appendChild(wrap);d.appendChild(tabs('acct'));return d}
 var NEWS=[
+ {d:'2026-11-27',t:'الاختبار العشوائي أصبح شبه الامتحان، جرّبه الآن',v:'home'},
  {d:'2026-11-26',t:'تم إضافة 25 سؤال لمادة ميكرو في قسم العملي',v:'quiz:micro'},
  {d:'2026-11-26',t:'تحديث الرئيسية: كارت هدف جديد بجمل متغيرة، نسبة الصح، واختبار عشوائي بتختار عدد الأسئلة والوقت والمواد',v:'home'},
  {d:'2026-11-26',t:'الرئيسية بقت بمربعات: اختبار عشوائي، مراجعة الأخطاء، اقترح، وأكمل من حيث وقفت',v:'home'},
@@ -473,6 +474,43 @@ var NEWS=[
  {d:'2026-11-25',t:'Badges and profile photo now follow your account on any device',v:'badges'}
 ];
 function exc(q){q=String(q||'').replace(/\s+/g,' ').trim();return q.length>60?q.slice(0,60)+'…':q}
+/* title prefix: د. for an Arabic name, Dr. for a Latin-letter name (first letter decides) */
+function drName(){var n=dispName(),m=n.match(/[A-Za-z\u0600-\u06FF]/);return m?(/[A-Za-z]/.test(m[0])?'Dr. ':'د. ')+n:n}
+/* merged "journey" box: streak always; week count and exam countdown only when their local data exists (nothing writes atlas.wk / atlas.exam yet) */
+var JB_IC={fire:'<svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 2c1 4 6 6 6 12a6 6 0 0 1-12 0c0-3 2-4 3-7 1 1 2 2 2 3 1-2 1-5 2-8z" fill="#ff9a2e"/></svg>',ok:'<svg viewBox="0 0 24 24" width="18" height="18"><circle cx="12" cy="12" r="10" fill="#2f9a58"/><path d="M7 12.500l3.500 3.500L17 9" fill="none" stroke="#fff" stroke-width="2.400" stroke-linecap="round" stroke-linejoin="round"/></svg>',cal:'<svg viewBox="0 0 24 24" width="18" height="18"><rect x="3" y="4.500" width="18" height="17" rx="3.500" fill="#c9a46a"/><path d="M3 10h18" stroke="#fff" stroke-width="1.600" opacity=".7"/><path d="M8 2.500v4M16 2.500v4" stroke="#c9a46a" stroke-width="2.200" stroke-linecap="round"/><circle cx="8.500" cy="14.500" r="1.500" fill="#fff"/><circle cx="15.500" cy="14.500" r="1.500" fill="#fff"/><circle cx="12" cy="18" r="1.200" fill="#fff"/></svg>'};
+function examGet(){var v=lsget('atlas.exam.'+CUR);return(v&&/^\d{4}-\d\d-\d\d$/.test(v)&&!isNaN(new Date(v+'T00:00:00')))?v:''}
+function examDays(v){return Math.round((new Date(v+'T00:00:00')-new Date(dayKey()+'T00:00:00'))/864e5)}
+/* exam date is stored on this device only (atlas.exam.<user>); it is not part of allData(), so it is not synced */
+/* questions answered since this week's Saturday 00:00 (device time), from the per-answer timestamps already kept locally */
+function weekCount(){var d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()-((d.getDay()+1)%7));var t0=d.getTime(),n=0;Object.keys(SETS).forEach(function(k){if(!SETS[k].key)return;var p=load(k),tm=tsGet(k);Object.keys(p).forEach(function(q){if(p[q]&&tm[q]>=t0)n++})});return n}
+function examCell(){var v=examGet(),d=v?examDays(v):null,val,i=h('span',{class:'atl-jbi'});i.innerHTML=JB_IC.cal;
+if(d===null)val=h('div',{class:'atl-jbv'},[h('small',{class:'atl-jbp'},['حدد موعد الامتحان'])]);
+else if(d<0)val=h('div',{class:'atl-jbv'},[h('b',{class:'atl-jbw'},['الامتحان خلص']),h('small',{},['غيّر الموعد'])]);
+else if(d===0)val=h('div',{class:'atl-jbv'},[h('b',{class:'atl-jbw'},['النهاردة'])]);
+else val=h('div',{class:'atl-jbv'},[h('b',{},[String(d)]),h('small',{},['يوم'])]);
+return h('button',{type:'button',class:'atl-jbc atl-jbx','aria-label':'موعد الامتحان',onclick:examDlg},[h('div',{class:'atl-jbl'},[i,h('span',{},['باقي على الامتحان'])]),val])}
+function examDlg(){var cur=examGet(),t=dayKey(),mx=new Date();mx.setFullYear(mx.getFullYear()+2);
+var ov=h('div',{class:'atl-ov',role:'dialog','aria-modal':'true','aria-label':'موعد الامتحان'}),bx=h('div',{class:'atl-dlg'});
+var MN=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'],keep=cur&&cur>=t?cur.split('-'):null,y0=+t.slice(0,4);
+function sel(lbl,n,from,txt,val){var s=h('select',{class:'atl-exs','aria-label':lbl}),o=h('option',{value:''},[lbl]);s.appendChild(o);for(var i=0;i<n;i++){o=h('option',{value:String(from+i)},[txt(i)]);s.appendChild(o)}s.value=val?String(+val):'';return s}
+var sd=sel('يوم',31,1,function(i){return String(i+1)},keep&&keep[2]),sm=sel('شهر',12,1,function(i){return MN[i]},keep&&keep[1]),sy=sel('سنة',3,y0,function(i){return String(y0+i)},keep&&keep[0]);
+var inp=h('div',{class:'atl-exin3'},[sd,sm,sy]);
+function val(){if(!sd.value||!sm.value||!sy.value)return'';var y=+sy.value,m=+sm.value,d=+sd.value,x=new Date(y,m-1,d);if(x.getMonth()!==m-1)return'';return y+'-'+('0'+m).slice(-2)+'-'+('0'+d).slice(-2)}
+var msg=h('div',{class:'atl-exm'},[cur?(examDays(cur)<0?'الموعد القديم عدّى. اختار موعد جديد.':'اختار موعد امتحانك والعدّاد هيحسب الأيام لوحده. بيتحفظ على الجهاز ده بس.'):'اختار موعد امتحانك والعدّاد هيحسب الأيام لوحده. بيتحفظ على الجهاز ده بس.']);
+function ok(){var v=val();return!!v&&v>=t}
+function close(cb){document.removeEventListener('keydown',kd);ov.classList.add('out');setTimeout(function(){if(ov.parentNode)ov.parentNode.removeChild(ov);if(cb)cb()},150)}
+function kd(e){if(e.key==='Escape')close()}
+var sv=h('button',{type:'button',class:'atl-btn p',onclick:function(){if(!ok())return;lsset('atlas.exam.'+CUR,val());close(render)}},['حفظ']);
+function chk(){if(ok())sv.removeAttribute('disabled');else sv.setAttribute('disabled','')}
+[sd,sm,sy].forEach(function(e){e.addEventListener('change',function(){chk();bad.textContent=(val()===''&&sd.value&&sm.value&&sy.value)?'التاريخ ده مش موجود في الشهر ده':(val()&&val()<t?'التاريخ ده عدّى':'')})});chk();
+var bad=h('div',{class:'atl-exbad'});var rows=[h('div',{class:'atl-exh'},['موعد الامتحان']),inp,bad,msg,h('div',{class:'atl-exr'},[sv,h('button',{type:'button',class:'atl-btn',onclick:function(){close()}},['إلغاء'])])];
+if(cur)rows.push(h('button',{type:'button',class:'atl-exrm',onclick:function(){store['k:atlas.exam.'+CUR]='';try{localStorage.removeItem('atlas.exam.'+CUR)}catch(e){}close(render)}},['مسح الموعد']));
+rows.forEach(function(r){bx.appendChild(r)});ov.appendChild(bx);document.body.appendChild(ov);document.addEventListener('keydown',kd)}
+function jbCells(){var c=[],cell=function(cls,ic,l,n,u){var i=h('span',{class:'atl-jbi'});i.innerHTML=JB_IC[ic];return h('div',{class:'atl-jbc '+cls},[h('div',{class:'atl-jbl'},[i,h('span',{},[l])]),h('div',{class:'atl-jbv'},[h('b',{},[String(n)]),h('small',{},[u])])])};
+c.push(cell('','fire','سلسلة المذاكرة',streakNow(),'أيام'));
+try{c.push(cell('','ok','إنجاز هذا الأسبوع',weekCount(),'سؤال'))}catch(x){}
+c.push(examCell());
+return h('div',{class:'atl-jbs'},c)}
 function goalMsg(p,n,G){var B=[
  [0,0,['يلا نبدأ، أول سؤال هو الأصعب','ابدأ بسؤال واحد وهتكمل لوحدك','النهارده لسه ما بدأتش، وقتك الآن','كل رحلة بتبدأ بخطوة، افتح سؤال']],
  [1,29,['بداية حلوة، كمّل','ماشي كويس، استمر','خطوة ورا خطوة، أنت على الطريق','كمّل، لسه بدري وأنت ماشي صح']],
@@ -483,10 +521,10 @@ function goalMsg(p,n,G){var B=[
 function home(){
  var ans=0;Object.keys(SETS).forEach(function(k){var p=load(k);SETS[k].items.forEach(function(it){if(p[it.n])ans++})});
  GOAL=goalTarget();var acc=(function(){var a=0,c=0;Object.keys(SETS).forEach(function(k){var q=SETS[k];if(!q.key)return;var p=load(k);q.items.forEach(function(it){if(p[it.n]){a++;if(p[it.n]===it.a)c++}})});return a?Math.round(c*100/a)+'%':'—'})();var ml=mistakesList(),lg=lastGet(),gn=goalGet(),gp=Math.min(100,Math.round(gn*100/GOAL));
- var hero=h('div',{class:'atl-hero atl-hh'},[h('div',{class:'atl-hr'},[brandEl(),thBtn()]),h('div',{class:'atl-hg atl3-hgp'},[h('button',{type:'button','aria-label':'حسابي',class:'atl-hav',onclick:function(){go('acct')}},[avEl('atl3-sm',false)]),h('div',{},[h('small',{},['أهلاً يا '+dispName()+' 👋']),h('p',{},['مراجعة العملي · موديول الهيماتولوجي'])])])]);
+ var hero=h('div',{class:'atl-hero atl-hh atl-hc'},[h('div',{class:'atl-hcard'},[h('button',{type:'button','aria-label':'حسابي',class:'atl-hav',onclick:function(){go('acct')}},[avEl('atl3-sm',false)]),h('div',{class:'atl-hct'},[h('b',{},['ATLAS 19']),h('small',{},['أهلاً يا '+drName()])]),thBtn(),window.LOGO?h('img',{src:window.LOGO,alt:'ATLAS 19',class:'atl-logo'}):h('span')])]);
  var wrap=h('div',{class:'atl-wrap atl-tw'});
  var gpc=Math.min(100,Math.round(gn*100/GOAL)),gmsg=goalMsg(gpc,gn,GOAL)+(gn<GOAL?' · فاضل '+(GOAL-gn)+' سؤال':'');
- wrap.appendChild(h('div',{class:'atl-g2'},[h('div',{class:'atl-g2h'},[h('b',{class:'atl-g2t'},['هدفك اليومي']),h('span',{class:'atl-g2n'},[Math.min(gn,GOAL)+' / '+GOAL])]),h('div',{class:'atl-g2b'},[h('i',{style:'width:'+gpc+'%'})]),h('div',{class:'atl-g2m'},[gmsg])]));
+ wrap.appendChild(h('div',{class:'atl-jb'},[h('div',{class:'atl-jbg'},[h('div',{class:'atl-g2h'},[h('b',{class:'atl-g2t'},['هدفك اليومي']),h('span',{class:'atl-g2n'},[Math.min(gn,GOAL)+' / '+GOAL])]),h('div',{class:'atl-g2b'},[h('i',{style:'width:'+gpc+'%'})])]),jbCells(),h('div',{class:'atl-jbm'},['★ '+gmsg+' ★'])]));
  wrap.appendChild(h('div',{class:'atl-stats atl-stats3'},[h('div',{class:'atl-stat st-a'},[h('b',{},[String(ans)]),h('span',{},['تم الحل'])]),h('div',{class:'atl-stat st-b'},[h('b',{},[acc]),h('span',{},['نسبة الصح'])]),h('button',{type:'button',class:'atl-stat atl-stat-fav',onclick:function(){go('fav')},'aria-label':'المفضلة'},[h('b',{},['⭐ '+favItems().length]),h('span',{},['المفضلة'])])]));
 
  var sq=function(cls,ic,t,sub,fn,dis){return h('button',{type:'button',class:'atl-sq '+cls+(dis?' off':''),onclick:fn},[h('span',{class:'atl-sqi'},[h('img',{src:ic,alt:'',width:'64',height:'64',draggable:'false'})]),h('b',{},[t]),h('small',{},[sub])])};
@@ -856,7 +894,7 @@ function rtLeft(R){return R.on?Math.max(0,Math.ceil((R.end-Date.now())/1000)):R.
 function rtPause(R){if(R.on){R.left=rtLeft(R);R.on=false;if(R===RQ)rqSave()}}
 function rtStart(R){R.end=Date.now()+R.left*1000;R.on=true;rtRun(R)}
 function rtFinish(R,up){rtPause(R);R.fin=true;R.up=!!up;R.used=(R.total||RT_TOTAL)-R.left;R.done=true;if(RT_IV){clearInterval(RT_IV);RT_IV=null}window.__qin=true;render();window.scrollTo(0,0)}
-function rtPaint(R){var e=document.getElementById('atl-tm');if(!e)return false;var l=rtLeft(R);e.textContent='⏱ '+fmtT(l);e.className='atl-tm'+(l<=60?' crit':l<=300?' warn':'');if(R===RQ&&Date.now()-(R.sv||0)>4000){R.sv=Date.now();rqSave()}
+function rtPaint(R){var e=document.getElementById('atl-tm');if(!e)return false;var l=rtLeft(R);e.textContent=(e.getAttribute('data-x')?'':'⏱ ')+fmtT(l);e.className='atl-tm'+(l<=60?' crit':l<=300?' warn':'');if(R===RQ&&Date.now()-(R.sv||0)>4000){R.sv=Date.now();rqSave()}
  if(l<=300&&!R.w5&&l>60){R.w5=1;rtWarn('باقي 5 دقايق')}if(l<=60&&!R.w1){R.w1=1;rtWarn('باقي أقل من دقيقة!');buzz(false)}return true}
 function rtWarn(t){var e=document.getElementById('atl-tw');if(!e)return;e.textContent=t;e.style.display='block';setTimeout(function(){if(e)e.style.display='none'},5000)}
 function rtRun(R){if(RT_IV)clearInterval(RT_IV);RT_IV=setInterval(function(){if(RQ!==R||R.done||!R.on){clearInterval(RT_IV);RT_IV=null;return}
@@ -867,13 +905,59 @@ function buildRnd(keys){var ks=(keys||RKEYS||Object.keys(SETS)).filter(function(
  ks.forEach(function(k){pool[k].splice(0,per).forEach(function(it){out.push({k:k,it:it,pick:null})})});
  ks.forEach(function(k){pool[k].forEach(function(it){rest.push({k:k,it:it,pick:null})})});
  while(out.length<N&&rest.length)out.push(rest.shift());
- var tp=lsget('atlas.rtimer')!=='0';return {list:shuf(out),i:0,done:false,left:rqT()*60,total:rqT()*60,on:false,tmr:tp,fin:false}}
+ var tp=lsget('atlas.rtimer')!=='0';return {list:shuf(out),i:0,done:false,left:rqT()*60,total:rqT()*60,on:false,tmr:true,fin:false,exam:true}}
 function rqKey(){return 'atlas.rqcur.'+CUR}
-function rqSave(){try{if(!CUR||CUR==='~guest'||!RQ)return;if(RQ.fin||RQ.done){lsset(rqKey(),'');return}var R=RQ;lsset(rqKey(),JSON.stringify({t:Date.now(),i:R.i|0,left:R.on?rtLeft(R):R.left,total:R.total,tmr:!!R.tmr,l:R.list.map(function(x){return [x.k,x.it.n,x.pick||'']})}))}catch(e){}}
-function rqLoad(){try{var o=JSON.parse(lsget(rqKey())||'null');if(!o||!o.l||Date.now()-o.t>864e5)return null;var L=[];o.l.forEach(function(a){var s=SETS[a[0]],it=s&&s.items.filter(function(x){return String(x.n)===String(a[1])})[0];if(it&&it.a&&it.o)L.push({k:a[0],it:it,pick:a[2]||null})});if(L.length!==o.l.length||!L.length)return null;return {list:L,i:Math.min(Math.max(o.i|0,0),L.length-1),done:false,left:o.left>0?o.left:0,total:o.total||o.left,on:false,tmr:!!o.tmr,fin:false}}catch(e){return null}}
+function rqSave(){try{if(!CUR||CUR==='~guest'||!RQ)return;if(RQ.fin||RQ.done){lsset(rqKey(),'');return}var R=RQ;lsset(rqKey(),JSON.stringify({t:Date.now(),i:R.i|0,left:R.on?rtLeft(R):R.left,total:R.total,tmr:!!R.tmr,ex:R.exam?1:0,l:R.list.map(function(x){return [x.k,x.it.n,x.pick||'',x.vis?1:0,x.mark?1:0]})}))}catch(e){}}
+function rqLoad(){try{var o=JSON.parse(lsget(rqKey())||'null');if(!o||!o.l||Date.now()-o.t>864e5)return null;var L=[];o.l.forEach(function(a){var s=SETS[a[0]],it=s&&s.items.filter(function(x){return String(x.n)===String(a[1])})[0];if(it&&it.a&&it.o)L.push({k:a[0],it:it,pick:a[2]||null,vis:!!a[3],mark:!!a[4]})});if(L.length!==o.l.length||!L.length)return null;return {list:L,i:Math.min(Math.max(o.i|0,0),L.length-1),done:false,left:o.left>0?o.left:0,total:o.total||o.left,on:false,tmr:!!o.tmr,fin:false,exam:!!o.ex}}catch(e){return null}}
+function exWm(dk){var n=dispName().replace(/[<>&"']/g,''),sv='<svg xmlns="http://www.w3.org/2000/svg" width="170" height="110"><text x="10" y="70" transform="rotate(-25 85 55)" font-family="sans-serif" font-size="15" fill="'+(dk?'#fff':'#000')+'" fill-opacity="'+(dk?'.1':'.08')+'">'+n+'</text></svg>';return 'url("data:image/svg+xml,'+encodeURIComponent(sv)+'")'}
+function exAsk(msg,yes,ttl,yl,nl){var ov=document.createElement('div');ov.className='atl-ov';ov.setAttribute('role','dialog');ov.setAttribute('aria-modal','true');var bx=document.createElement('div');bx.className='atl-dlg atl-exdlg';var t=document.createElement('div');t.className='atl-dt';t.textContent=ttl||'End Test';var p=document.createElement('div');p.className='atl-exin';p.style.cssText='list-style:none;padding:0;margin:12px';p.textContent=msg;var row=document.createElement('div');row.className='atl-dr';
+function close(f){ov.classList.add('out');setTimeout(function(){if(ov.parentNode)ov.parentNode.removeChild(ov);if(f)f()},150)}
+var y=document.createElement('button');y.type='button';y.className='atl-btn p';y.textContent=yl||'Yes, end';y.onclick=function(){close(yes)};var n=document.createElement('button');n.type='button';n.className='atl-btn';n.textContent=nl||'Cancel';n.style.cssText='background:#e3e3e3!important;border-color:#d3d3d3!important;color:#555!important;margin-right:8px';n.onclick=function(){close()};
+ov.onclick=function(e){if(e.target===ov)close()};row.appendChild(n);row.appendChild(y);bx.appendChild(t);bx.appendChild(p);bx.appendChild(row);ov.appendChild(bx);document.body.appendChild(ov)}
+function exFs(){var n=parseInt(lsget('atlas.exfs'),10);return n>=-2&&n<=3?n:0}
+function infoDlg(title,body){var ov=document.createElement('div');ov.className='atl-ov';ov.setAttribute('role','dialog');ov.setAttribute('aria-modal','true');
+ var bx=document.createElement('div');bx.className='atl-dlg atl-exdlg';var t=document.createElement('div');t.className='atl-dt';t.textContent=title;
+ var row=document.createElement('div');row.className='atl-dr';var ok=document.createElement('button');ok.type='button';ok.className='atl-btn p';ok.textContent='OK';
+ function close(){document.removeEventListener('keydown',kd);ov.classList.add('out');setTimeout(function(){if(ov.parentNode)ov.parentNode.removeChild(ov)},150)}
+ function kd(e){if(e.key==='Escape')close()}ok.onclick=close;ov.onclick=function(e){if(e.target===ov)close()};
+ row.appendChild(ok);bx.appendChild(t);bx.appendChild(body);bx.appendChild(row);ov.appendChild(bx);document.body.appendChild(ov);document.addEventListener('keydown',kd);setTimeout(function(){ok.focus()},30)}
+function examView(R){var d=h('div',{class:'atl-ex'}),w=h('div',{class:'atl-wrap'}),rev=!!R.rev,N=R.list.length;
+ if(!rev&&!R.fin&&!R.on&&R.left<=0)setTimeout(function(){rtFinish(R,true)},0);
+ var x=R.list[R.i],it=x.it,set=SETS[x.k];if(!rev)x.vis=1;
+ function st(y){return y.mark?'mk':y.pick?'an':y.vis?'na':'nv'}
+ var c={mk:0,an:0,na:0,nv:0};R.list.forEach(function(y){c[st(y)]++});
+ if(!rev){w.appendChild(h('div',{class:'atl-exhd'},[h('div',{class:'atl-exav'},[]),h('div',{class:'atl-ext'},[h('small',{},['Time Remaining']),h('b',{id:'atl-tm','data-x':'1',class:'atl-tm'},[fmtT(rtLeft(R))])])]));w.appendChild(h('div',{id:'atl-tw',class:'atl-note warn atl-tw',style:'display:none',role:'alert'}))}
+ else w.appendChild(h('div',{class:'atl-ext'},[h('small',{},['Review']),h('b',{style:'font-size:18px'},[R.list.filter(function(y){return y.pick&&y.pick===y.it.a}).length+' / '+N])]));
+ for(var _k=1;_k<=5;_k++){var _y=R.list[R.i+_k];if(_y&&SETS[_y.k].images)pre(SETS[_y.k].images[_y.it.n-1])}
+ var fs=exFs();function fb(t,dl){return h('button',{type:'button',class:'atl-exfb','aria-label':'Font size',onclick:function(){lsset('atlas.exfs',String(dl===0?0:Math.max(-2,Math.min(3,exFs()+dl))));render()}},[t])}
+ var cur=x.sel!==undefined?x.sel:x.pick;
+ var an=R._an||'';R._an='';var card=h('div',{class:'atl-exq'+(an?' an-'+an:'')},[h('div',{class:'atl-exqh'},[h('b',{},['Question No. '+(R.i+1)]),h('span',{class:'atl-exfs'},[fb('A−',-1),fb('A',0),fb('A+',1)])]),
+  h('div',{class:'atl-exqb f'+fs},[(set.images&&set.images[it.n-1])?h('img',{class:'atl-qi',src:set.images[it.n-1],decoding:'async',fetchpriority:'high',alt:'Image for question'}):null,h('p',{class:'atl-qt',dir:'auto'},[it.q])])]);
+ var body=card.querySelector('.atl-exqb');
+ it.o.forEach(function(o,i){var l=L[i],cls='atl-exo'+(rev?(l===it.a?' ok':(l===x.pick?' bad':'')):(cur===l?' on':''));
+  body.appendChild(h('button',{type:'button',class:cls,onclick:function(){if(rev)return;x.sel=l;render()}},[h('i',{}),h('span',{dir:'auto'},[o])]))});
+ if(rev)body.appendChild(h('div',{class:'atl-note '+(x.pick===it.a?'ok':'bad')},[x.pick?(x.pick===it.a?'Correct ('+it.a+')':'Your answer: '+x.pick+'. Correct: '+it.a):'Not answered. Correct: '+it.a]));
+ w.appendChild(card);
+ function go2(i){x.sel=undefined;R._an=i>R.i?'fw':i<R.i?'bk':'';R.i=i;window.__qin=true;render();window.scrollTo(0,0)}
+ if(!rev){
+  w.appendChild(h('div',{class:'atl-exbtns'},[h('button',{type:'button',class:'atl-btn p',onclick:function(){var cs=x.sel!==undefined?x.sel:null;function nx(){if(cs&&cs!==x.pick){var first=!x.pick;x.pick=cs;if(SETS[x.k]&&SETS[x.k].key){srAns(x.k,it.n,cs===it.a);var p2=load(x.k);p2[it.n]=cs;save(x.k,p2,first?1:0)}rqSave()}x.sel=undefined;go2(Math.min(R.i+1,N-1))}if(!cs&&!x.pick){exAsk('Are you sure?',nx,'No answer selected','Next question','Back to question');return}nx()}},['Save & Next']),
+   h('button',{type:'button',class:'atl-exmk'+(x.mark?' on':''),'aria-pressed':String(!!x.mark),onclick:function(){x.mark=!x.mark;rqSave();render()}},[h('i',{}),h('span',{},['Mark for Review'])])]))}
+ else{w.appendChild(h('div',{class:'atl-exbtns'},[h('button',{type:'button',class:'atl-btn p',onclick:function(){R.rev=false;R.done=true;R.sc=0;window.__qin=true;render();window.scrollTo(0,0)}},['Back to result'])]));w.appendChild(favBtn(x.k,it.n));w.appendChild(reportBtn(x.k,it.n))}
+ w.appendChild(h('div',{class:'atl-exu'},['User :'+dispName()]));
+ function bx(k,cl,t){return h('div',{class:'atl-exl'},[h('i',{class:'atl-exp '+cl},[String(c[k])]),h('span',{},[t])])}
+ w.appendChild(h('div',{class:'atl-exbox'},[h('div',{class:'atl-exn'},['Number of questions : '+N]),h('div',{class:'atl-exsg'},[bx('an','an','Answered'),bx('na','na','Not Answered'),bx('nv','nv','Not Visited'),bx('mk','mk','Marked for Review')])]));
+ var g=h('div',{class:'atl-exg'}),ps=R._ps||[],ns=[],pc=R._pc;R.list.forEach(function(y,i){var s=rev?(y.pick?(y.pick===y.it.a?'rok':'rbad'):'na'):st(y);ns.push(s);var chg=ps.length===N&&ps[i]!==s,mv=pc!==undefined&&pc!==R.i&&i===R.i;g.appendChild(h('button',{type:'button',class:'atl-exp '+s+(i===R.i?' cur':'')+(chg?' chg from-'+ps[i]:'')+(mv?' mv':''),'aria-label':'Question '+(i+1),onclick:function(){go2(i)}},[String(i+1)]))});
+ R._ps=ns;R._pc=R.i;w.appendChild(h('div',{class:'atl-exbox'},[g]));
+ var prof=function(){var t=h('table',{class:'atl-ext2'});[['Name',dispName()],['Exam','Qena University'],['Questions',String(N)],['Duration',Math.round((R.total||RT_TOTAL)/60)+' min']].forEach(function(r){t.appendChild(h('tr',{},[h('th',{},[r[0]]),h('td',{dir:'auto'},[r[1]])]))});infoDlg('Profile',t)};
+ var ins=function(){var o=h('ol',{class:'atl-exin'});['Choose your answer, then click Save & Next to save it.','Moving to another question without saving leaves it Not Answered.','Tick Mark for Review to come back to a question later.','Use the question palette to jump to any question.','Results and correct answers are shown only at the end of the test.','The test is submitted automatically when the time is over.'].forEach(function(t){o.appendChild(h('li',{},[t]))});infoDlg('Instructions',o)};
+ w.appendChild(h('div',{class:'atl-exact'},[h('button',{type:'button',class:'atl-btn',onclick:prof},['Profile']),h('button',{type:'button',class:'atl-btn',onclick:ins},['Instructions'])]));
+ if(!rev)w.appendChild(h('div',{class:'atl-exact'},[h('button',{type:'button',class:'atl-btn atl-exend',onclick:function(){var un=N-R.list.filter(function(y){return y.pick}).length;exAsk((un>0?un+' unanswered. ':'')+'End the test and see the result?',function(){rtFinish(R,false)})}},['End Test'])]));
+ d.appendChild(h('div',{class:'atl-exbar'},[h('button',{type:'button',class:'atl-exbk','aria-label':'Back',onclick:function(){rtPause(R);if(rev){R.rev=false;R.done=true;R.sc=0;render()}else go('home')}},['\u2039']),h('span',{},['Qena University'])]));d.appendChild(w);
+ if(!rev)setTimeout(function(){rtPaint(R)},0);return d}
 function rndView(){if(!RQ)RQ=rqLoad()||buildRnd();var R=RQ,w=h('div',{class:'atl-wrap'}),d=h('div');
  if(R.tmr&&!R.fin&&!R.on&&!R.done&&R.left>0)rtStart(R);
  if(R.on&&rtLeft(R)<=0){setTimeout(function(){rtFinish(R,true)},0)}
+ if(R.exam&&!R.done)return examView(R);
  var ans=R.list.filter(function(x){return x.pick}).length,cor=R.list.filter(function(x){return x.pick&&x.pick===x.it.a}).length;
  function nm(x){var sj=subjOfSet(x.k);return sj?sj.name:x.k}
  if(R.done){if(!R.cnt){R.cnt=1;setTimeout(function(){if(bdOn()){var gq=bdGet();gq.m.sets=(gq.m.sets||0)+1;bdSet(gq);bdCheck(gq,false)}},0)}if(!R.sc){R.sc=1;var _t=function(){window.scrollTo(0,0);if(document.scrollingElement)document.scrollingElement.scrollTop=0};setTimeout(_t,0);setTimeout(_t,150)}var pc=Math.round(cor*100/R.list.length);
@@ -882,7 +966,7 @@ function rndView(){if(!RQ)RQ=rqLoad()||buildRnd();var R=RQ,w=h('div',{class:'atl
   w.appendChild(h('div',{class:'atl-stats atl-stats3'},[h('div',{class:'atl-stat'},[h('b',{},[cor+' / '+R.list.length]),h('span',{},['الدرجة'])]),h('div',{class:'atl-stat'},[h('b',{},[pc+'%']),h('span',{},['النسبة'])]),R.fin?h('div',{class:'atl-stat'},[h('b',{},[fmtT(R.used)]),h('span',{},['الوقت المستخدم'])]):h('div',{class:'atl-stat'},[h('b',{},[String(R.list.length-ans)]),h('span',{},['من غير إجابة'])])]));
   var wr=R.list.filter(function(x){return x.pick!==x.it.a});
   if(wr.length){w.appendChild(h('h2',{},['الأسئلة اللي غلطت فيها أو سبتها']));
-   wr.forEach(function(x){var i=R.list.indexOf(x);w.appendChild(h('button',{type:'button',class:'atl-card',onclick:function(){R.done=false;R.i=i;window.__qin=true;render();window.scrollTo(0,0)}},[ico(nm(x).slice(0,3)),h('span',{style:'flex:1'},[h('div',{class:'t'},['سؤال '+(i+1)+' · '+exc(x.it.q)]),h('div',{class:'s'},[x.pick?'اخترت '+x.pick+' والصح '+x.it.a:'من غير إجابة، والصح '+x.it.a])])]))})}
+   wr.forEach(function(x){var i=R.list.indexOf(x);w.appendChild(h('button',{type:'button',class:'atl-card',onclick:function(){R.done=false;R.rev=!!R.exam;R.i=i;window.__qin=true;render();window.scrollTo(0,0)}},[ico(nm(x).slice(0,3)),h('span',{style:'flex:1'},[h('div',{class:'t'},['سؤال '+(i+1)+' · '+exc(x.it.q)]),h('div',{class:'s'},[x.pick?'اخترت '+x.pick+' والصح '+x.it.a:'من غير إجابة، والصح '+x.it.a])])]))})}
   else w.appendChild(h('div',{class:'atl-note ok'},['ممتاز! كل إجاباتك صح.']));
   w.appendChild(h('div',{class:'atl-nav'},[h('button',{type:'button',class:'atl-btn p',onclick:function(){rtPause(R);RQ=buildRnd();window.__qin=true;render();window.scrollTo(0,0)}},['اختبار عشوائي جديد'])]));
   d.appendChild(top('نتيجة الاختبار العشوائي',ans+' / '+R.list.length+' answered',function(){rtPause(R);go('home')}));d.appendChild(w);return d}
