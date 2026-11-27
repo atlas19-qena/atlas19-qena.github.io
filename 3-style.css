@@ -1023,3 +1023,28 @@ html[data-theme="dark"] .atl-exdlg{background:#18233b!important}html[data-theme=
 @media (min-width:1000px){.atl-excols{grid-template-columns:minmax(0,1fr) 360px}.atl-exg{grid-template-columns:repeat(7,1fr)}}
 
 .atl-exact .atl-btn.atl-exend.rdy{background:#2e9b5a;border-color:#2e9b5a;color:#fff;transition:background .3s,border-color .3s}
+
+/* iPad and desktop layouts for the whole site. Phones (under 700px) are untouched. */
+@media (min-width:700px){
+.atl-wrap.atl-tw .atl-news{margin-bottom:24px}
+.atl-tin-f:not(.atl-acct)>.atl-wrap.atl-tw{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:start}
+.atl-tin-f:not(.atl-acct)>.atl-wrap.atl-tw>*{margin:0}
+.atl-sg.atl-sg2{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.atl-top{padding-inline:max(16px,calc((100% - 1080px)/2))}
+.atl-hh.atl-hc .atl-hcard{max-width:1080px;margin-inline:auto}
+}
+@media (min-width:900px){
+.atl-wrap.atl-tw:not(.atl-ex){max-width:1120px}
+/* Home: journey, stats and the four squares on the left, News on the right */
+.atl-hero.atl-hh+.atl-wrap.atl-tw{display:grid;grid-template-columns:minmax(0,1fr) 360px;column-gap:20px;align-items:start}
+.atl-hero.atl-hh+.atl-wrap.atl-tw>.atl-news{grid-column:2;grid-row:1/span 4;margin-top:0}
+.atl-hero.atl-hh+.atl-wrap.atl-tw>:not(.atl-news){grid-column:1}
+.atl-hero.atl-hh+.atl-wrap.atl-tw .atl-sqg{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.atl-hero.atl-hh+.atl-wrap.atl-tw .atl-sq{min-height:0;padding:16px 8px}
+.atl-hero.atl-hh+.atl-wrap.atl-tw .atl-sqi img{width:56px;height:56px}
+/* Account: profile on the left, goal and badges on the right */
+.atl-acct>.atl-wrap.atl-tw{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:20px;align-items:start;max-width:1080px}
+.atl-acct>.atl-wrap.atl-tw>.atl-pf{grid-column:1;grid-row:1/span 4}
+.atl-acct>.atl-wrap.atl-tw>:not(.atl-pf){grid-column:2}
+.atl-sg.atl-sg2{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
