@@ -1048,3 +1048,8 @@ html[data-theme="dark"] .atl-exdlg{background:#18233b!important}html[data-theme=
 .atl-acct>.atl-wrap.atl-tw>:not(.atl-pf){grid-column:2}
 .atl-sg.atl-sg2{grid-template-columns:repeat(3,minmax(0,1fr))}
 }
+
+/* numbers like 6 / 30 stay in reading order inside the right-to-left layout */
+.atl6-st span,.atl-g2n,.atl-stat b{direction:ltr;unicode-bidi:isolate}
+/* iPad landscape and desktop: tab bar floats with a gap instead of touching the edge */
+@media (min-width:900px){.atl-tabs{bottom:14px;border:1px solid #d9deea;border-radius:20px;box-shadow:0 8px 28px rgba(18,37,74,.16)}html[data-theme="dark"] .atl-tabs{border-color:#25345a;box-shadow:0 8px 28px rgba(0,0,0,.45)}}
