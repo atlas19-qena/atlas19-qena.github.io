@@ -464,6 +464,7 @@ function acctView(){
  fg.classList.add('atl-fgs');wrap.appendChild(fg);
  var d=h('div',{class:'atl-acct'});d.appendChild(acctBanner());d.appendChild(pageHead('حسابك'));d.appendChild(wrap);d.appendChild(tabs('acct'));return d}
 var NEWS=[
+ {d:'2026-11-27',t:'الاختبار العشوائي بقى أحسن: ألوان زرقاء، بيشتغل كويس على الآيباد والكمبيوتر، وزر إنهاء الاختبار بيتحول أخضر',v:'home'},
  {d:'2026-11-27',t:'الاختبار العشوائي أصبح شبه الامتحان، جرّبه الآن',v:'home'},
  {d:'2026-11-26',t:'تم إضافة 25 سؤال لمادة ميكرو في قسم العملي',v:'quiz:micro'},
  {d:'2026-11-26',t:'تحديث الرئيسية: كارت هدف جديد بجمل متغيرة، نسبة الصح، واختبار عشوائي بتختار عدد الأسئلة والوقت والمواد',v:'home'},
