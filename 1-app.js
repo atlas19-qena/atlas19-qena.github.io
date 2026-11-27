@@ -83,7 +83,7 @@ function srOrder(k,items){var o=srLoad();if(!o)return shuf(items);var now=Date.n
  var out=[],di=0,ni=0;while(di<due.length||ni<nw.length){if(di<due.length&&(out.length%3<2||ni>=nw.length))out.push(due[di++].it);else out.push(nw[ni++])}
  wt.forEach(function(x){out.push(x.it)});return out}
 function srMistSort(ml){var o=srLoad();if(!o)return ml;return ml.slice().sort(function(a,b){var ca=o.c[a.set.id+'|'+a.it.n],cb=o.c[b.set.id+'|'+b.it.n];return (ca?ca[2]:0)-(cb?cb[2]:0)})}
-function save(id,p,cnt){if(CUR&&CUR!=='~guest'){try{var ob=load(id),tm=tsGet(id),now=Date.now(),ch=false;Object.keys(p||{}).forEach(function(n){if(ob[n]!==p[n]){tm[n]=now;ch=true}});if(ch)lsset(tsKey(id),JSON.stringify(tm))}catch(e){}}var was=answeredCount(id);lsset('atlas.p.'+CUR+'.'+id,JSON.stringify(p));var inc=(typeof cnt==='number')?cnt:Object.keys(p||{}).length-was;if(inc>0&&CUR&&CUR!=='~guest'){markDay();lsset('atlas.goal.'+CUR,JSON.stringify({d:dayKey(),n:goalGet()+inc}));bdTick()}schedulePush()}
+function save(id,p,cnt){if(CUR&&CUR!=='~guest'){try{var ob=load(id),tm=tsGet(id),now=Date.now(),ch=false;Object.keys(p||{}).forEach(function(n){if(ob[n]!==p[n]){tm[n]=now;ch=true}});if(ch)lsset(tsKey(id),JSON.stringify(tm))}catch(e){}}var was=answeredCount(id);LW=Date.now();lsset('atlas.p.'+CUR+'.'+id,JSON.stringify(p));var inc=(typeof cnt==='number')?cnt:Object.keys(p||{}).length-was;if(inc>0&&CUR&&CUR!=='~guest'){markDay();lsset('atlas.goal.'+CUR,JSON.stringify({d:dayKey(),n:goalGet()+inc}));bdTick()}schedulePush()}
 function dispName(){if(CUR==='~guest')return 'ضيف';var p=profs()[CUR];return p?p.name:CUR}
 function setCur(k){CUR=k;if(k)lsset('atlas.cur',k);else{store['k:atlas.cur']='';try{localStorage.removeItem('atlas.cur')}catch(e){}}}
 function mistakesList(){var out=[];Object.keys(SETS).forEach(function(k){var q=SETS[k];if(!q.key)return;var p=load(k);q.items.forEach(function(it,i){if(p[it.n]&&p[it.n]!==it.a)out.push({set:q,it:it,idx:i,pick:p[it.n]})})});return out}
@@ -98,12 +98,16 @@ function derive(k,pin){if(!(window.crypto&&crypto.subtle&&window.TextEncoder))re
 function rpc(fn,body){return fetch(SBU+fn,{method:'POST',headers:{apikey:SBK,'Content-Type':'application/json'},body:JSON.stringify(body)}).then(function(r){if(!r.ok)throw new Error('http'+r.status);return r.json()})}
 function allData(){var d={};Object.keys(SETS).forEach(function(k){d[k]=load(k)});d.pcq=load('pcq');d.stats={m:mistakesList().length};return d}
 function setDirty(v){var o=profs();if(o[CUR]){o[CUR].dirty=v;lsset('atlas.profiles',JSON.stringify(o))}}
-function pushNow(){var pr=profs()[CUR];if(!pr||!pr.dh||CUR==='~guest')return Promise.resolve();return rpc('atlas_save',{p_name:pr.name,p_pin:pr.dh,p_data:allData()}).then(function(r){if(r&&r.status==='ok'){pushF=0;setDirty(false)}else setDirty(true)}).catch(function(){setDirty(true);retryPush()})}
+function pushNow(){var pr=profs()[CUR];if(!pr||!pr.dh||CUR==='~guest')return Promise.resolve();var tb0=lsget('atlas.tomb.'+CUR),cu0=CUR;return rpc('atlas_save',{p_name:pr.name,p_pin:pr.dh,p_data:allData()}).then(function(r){if(r&&r.status==='ok'){pushF=0;setDirty(false);if(cu0===CUR&&lsget('atlas.tomb.'+CUR)===tb0)lsset('atlas.tomb.'+CUR,'')}else setDirty(true)}).catch(function(){setDirty(true);retryPush()})}
 function schedulePush(){var pr=profs()[CUR];if(!pr||!pr.dh||CUR==='~guest')return;setDirty(true);clearTimeout(pushT);pushT=setTimeout(pushNow,4000)}
 var pushF=0;function retryPush(){pushF++;var d=Math.min(60000,3000*Math.pow(2,Math.min(pushF,5)));clearTimeout(pushT);pushT=setTimeout(pushNow,d)}
 document.addEventListener('visibilitychange',function(){var pr=profs()[CUR];if(document.visibilityState==='hidden'&&pr&&pr.dirty&&CUR!=='~guest')pushNow()})
-function applyRemote(d,keepLocal){Object.keys(SETS).concat(['pcq']).forEach(function(k){var r=(d&&d[k])||{},l=load(k),m;if(keepLocal){m={};for(var a in r)if(!badKey(a))m[a]=r[a];for(var b in l)if(!badKey(b))m[b]=l[b]}else m=r;lsset('atlas.p.'+CUR+'.'+k,JSON.stringify(m))})}
-function bgPull(){var pr=profs()[CUR];if(!pr||!pr.dh||CUR==='~guest')return;rpc('atlas_login',{p_name:pr.name,p_pin:pr.dh,p_create:false}).then(function(r){if(!r||r.status!=='ok')return;ISADM=!!r.admin;if(pr.dirty){applyRemote(r.data,true);pushNow()}else applyRemote(r.data,false);xPull();if(state.view==='home'||state.view==='acct')render()}).catch(function(){})}
+document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden'&&RQ&&RQ.on)rqSave()});window.addEventListener('pagehide',function(){if(RQ&&RQ.on)rqSave()});
+function tombGet(){try{return JSON.parse(lsget('atlas.tomb.'+CUR)||'{}')||{}}catch(e){return {}}}
+function tombAdd(k,n){var t=tombGet();(t[k]=t[k]||{})[n]=1;lsset('atlas.tomb.'+CUR,JSON.stringify(t))}
+function applyRemote(d,keepLocal){var tb=keepLocal?tombGet():{};Object.keys(SETS).concat(['pcq']).forEach(function(k){var r=(d&&d[k])||{},l=load(k),m;if(keepLocal){m={};for(var a in r)if(!badKey(a)&&!(tb[k]&&tb[k][a]&&!(a in l)))m[a]=r[a];for(var b in l)if(!badKey(b))m[b]=l[b]}else m=r;lsset('atlas.p.'+CUR+'.'+k,JSON.stringify(m))})}
+var LW=0;
+function bgPull(){var pr=profs()[CUR];if(!pr||!pr.dh||CUR==='~guest')return;var t0=Date.now();rpc('atlas_login',{p_name:pr.name,p_pin:pr.dh,p_create:false}).then(function(r){if(!r||r.status!=='ok')return;ISADM=!!r.admin;if(LW>=t0)return;ISADM=!!r.admin;if(pr.dirty){applyRemote(r.data,true);pushNow()}else applyRemote(r.data,false);xPull();if(state.view==='home'||state.view==='acct')render()}).catch(function(){})}
 window.addEventListener('online',function(){var pr=profs()[CUR];if(pr&&pr.dirty)pushNow()});
 function ago(t){var s=(Date.now()-new Date(t).getTime())/1000;if(s<90)return 'دلوقتي';if(s<3600)return Math.round(s/60)+' د';if(s<86400)return Math.round(s/3600)+' س';return Math.round(s/86400)+' يوم'}
 function adminLoginsView(){var w=h('div',{class:'atl-wrap',style:'padding-top:14px'},[h('div',{class:'atl-note warn'},['جاري التحميل...'])]);var d=h('div');d.appendChild(top('تسجيل الدخول',null,function(){go('admin')}));d.appendChild(w);
@@ -260,7 +264,7 @@ function markDay(){if(!CUR||CUR==='~guest')return;var a=daysGet(),t=dayKey();if(
 function streakNow(){var a=daysGet().slice();if(goalGet()>0&&a.indexOf(dayKey())<0)a.push(dayKey());var d=new Date(),n=0;if(a.indexOf(dayKey(d))<0)d.setDate(d.getDate()-1);while(a.indexOf(dayKey(d))>=0){n++;d.setDate(d.getDate()-1)}return n}
 function lastGet(){try{var o=JSON.parse(lsget('atlas.last.'+CUR)||'null');if(o&&typeof o.v==='string'&&(o.v==='pcq'||(o.v==='rnd'&&rqLoad())||(o.v.indexOf('quiz:')===0&&SETS[o.v.slice(5)]))&&(o.p|0)>=0)return {v:o.v,p:o.p|0}}catch(e){}return lastFallback()}
 function lastFallback(){if(!CUR||CUR==='~guest')return null;var best=null;try{Object.keys(SETS).forEach(function(k){var it=SETS[k].items||[],p;try{p=JSON.parse(lsget('atlas.p.'+CUR+'.'+k)||'{}')}catch(e){p={}}var n=Object.keys(p).length;if(!n||n>=it.length)return;var pos=0;for(var i=0;i<it.length;i++){if(!p[it[i].n]){pos=i;break}}if(!best||n>best.n)best={v:'quiz:'+k,p:pos,n:n}})}catch(e){}return best?{v:best.v,p:best.p}:null}
-function lastSet(){if(!CUR||CUR==='~guest')return;var v=state.view;if(v==='rnd'&&RQ){rqSave();if(!RQ.fin&&!RQ.done)lsset('atlas.last.'+CUR,JSON.stringify({v:'rnd',p:0}))}if(v==='pcq'||(typeof v==='string'&&v.indexOf('quiz:')===0))lsset('atlas.last.'+CUR,JSON.stringify({v:v,p:state.pos|0}))}
+function lastSet(){if(!CUR||CUR==='~guest')return;var v=state.view;if(v!=='rnd'&&RQ&&RQ.on&&!RQ.done)rtPause(RQ);if(v==='rnd'&&RQ){rqSave();if(!RQ.fin&&!RQ.done)lsset('atlas.last.'+CUR,JSON.stringify({v:'rnd',p:0}))}if(v==='pcq'||(typeof v==='string'&&v.indexOf('quiz:')===0))lsset('atlas.last.'+CUR,JSON.stringify({v:v,p:state.pos|0}))}
 function subjTitle(x){return x.name}
 function weakPick(){var SRO=null;try{SRO=srLoad()}catch(e){}var now=Date.now(),DAY=86400000,K=5,sets={},subs=[],TA=0,TW=0;
  SUBJECTS.forEach(function(x){if(x.soon||!x.quizzes.length)return;var S={x:x,a:0,w:0,we:0,left:0,due:0,sets:[]};
@@ -608,7 +612,7 @@ function mistView(sid){
  ml.forEach(function(m){var it=m.it,L2='ABCDE';
   var c=h('div',{class:'atl-q'},[h('div',{class:'atl-qm'},[h('span',{},[m.set.title+' · Question '+it.n])]),h('div',{style:'margin:6px 0'},[srcTag(it)]),h('p',{class:'atl-qt'},[it.q])]);
   it.o.forEach(function(o,i){var l=L2[i],cls='atl-o';if(l===it.a)cls+=' ok';else if(l===m.pick)cls+=' bad';c.appendChild(h('div',{class:cls},[h('span',{class:'l'},[l]),h('span',{},[o])]))});
-  c.appendChild(h('button',{type:'button',class:'atl-btn p',style:'width:100%;margin-top:8px',onclick:function(){var p=load(m.set.id);delete p[it.n];save(m.set.id,p);window.__rt=m.set.id+'|'+it.n;state={view:'quiz:'+m.set.id,pos:m.idx,sec:'',wrong:false};render();window.scrollTo(0,0)}},['حاول تاني']));
+  c.appendChild(h('button',{type:'button',class:'atl-btn p',style:'width:100%;margin-top:8px',onclick:function(){var p=load(m.set.id);delete p[it.n];save(m.set.id,p);tombAdd(m.set.id,it.n);window.__rt=m.set.id+'|'+it.n;state={view:'quiz:'+m.set.id,pos:m.idx,sec:'',wrong:false};render();window.scrollTo(0,0)}},['حاول تاني']));
   w.appendChild(c)});
  var d=h('div');d.appendChild(top('أخطائي'+(sid?' · '+subj(sid).name:''),ml.length+' سؤال',function(){goBack('mist:prac')}));d.appendChild(w);return d}
 function subject(id){var s=subj(id),w=h('div',{class:'atl-wrap'});
@@ -847,10 +851,10 @@ function rqT(){var n=parseInt(lsget('atlas.rq.t'),10);return n>=10&&n<=60?n:30}
 function rqSet(k,v,lo,hi){v=Math.max(lo,Math.min(hi,v));lsset(k,String(v));render()}
 function fmtT(n){n=Math.max(0,Math.round(n));var m=Math.floor(n/60),x=n%60;return (m<10?'0':'')+m+':'+(x<10?'0':'')+x}
 function rtLeft(R){return R.on?Math.max(0,Math.ceil((R.end-Date.now())/1000)):R.left}
-function rtPause(R){if(R.on){R.left=rtLeft(R);R.on=false}}
+function rtPause(R){if(R.on){R.left=rtLeft(R);R.on=false;if(R===RQ)rqSave()}}
 function rtStart(R){R.end=Date.now()+R.left*1000;R.on=true;rtRun(R)}
 function rtFinish(R,up){rtPause(R);R.fin=true;R.up=!!up;R.used=(R.total||RT_TOTAL)-R.left;R.done=true;if(RT_IV){clearInterval(RT_IV);RT_IV=null}window.__qin=true;render();window.scrollTo(0,0)}
-function rtPaint(R){var e=document.getElementById('atl-tm');if(!e)return false;var l=rtLeft(R);e.textContent='⏱ '+fmtT(l);e.className='atl-tm'+(l<=60?' crit':l<=300?' warn':'');
+function rtPaint(R){var e=document.getElementById('atl-tm');if(!e)return false;var l=rtLeft(R);e.textContent='⏱ '+fmtT(l);e.className='atl-tm'+(l<=60?' crit':l<=300?' warn':'');if(R===RQ&&Date.now()-(R.sv||0)>4000){R.sv=Date.now();rqSave()}
  if(l<=300&&!R.w5&&l>60){R.w5=1;rtWarn('باقي 5 دقايق')}if(l<=60&&!R.w1){R.w1=1;rtWarn('باقي أقل من دقيقة!');buzz(false)}return true}
 function rtWarn(t){var e=document.getElementById('atl-tw');if(!e)return;e.textContent=t;e.style.display='block';setTimeout(function(){if(e)e.style.display='none'},5000)}
 function rtRun(R){if(RT_IV)clearInterval(RT_IV);RT_IV=setInterval(function(){if(RQ!==R||R.done||!R.on){clearInterval(RT_IV);RT_IV=null;return}
@@ -976,3 +980,4 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE
 */
+
