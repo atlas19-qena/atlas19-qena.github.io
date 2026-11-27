@@ -134,6 +134,7 @@ var NAV=[];
 function navDir(v){var back=NAV.length>=2&&NAV[NAV.length-2]===v;if(back)NAV.length=NAV.length-1;else if(NAV[NAV.length-1]!==v)NAV.push(v);return back?'back':'fwd'}
 function stagger(root){if(RM.matches)return;var cs=root.querySelectorAll('.atl-card');for(var i=0;i<cs.length&&i<9;i++){cs[i].style.animationDelay=(0.04+i*0.045)+'s';cs[i].classList.add('atl-cin')}}
 function goBack(def){var p=NAV.length>=2?NAV[NAV.length-2]:'';if(p&&p!=='login')go(p);else go(def)}
+function exitMist(){var i=NAV.length-1;while(i>=0&&(NAV[i]==='mqz'||String(NAV[i]).indexOf('mist')===0))i--;var t=i>=0&&NAV[i]!=='login'?NAV[i]:'home';NAV.length=Math.max(0,i);go(t)}
 function tabGo(nx,d,from){TABY[from]=window.scrollY||0;window.__tab=nx;syncTabs();app.classList.add('atl-vt');if(app.firstChild)app.firstChild.classList.add('atl-tout-'+d);
  setTimeout(function(){state={view:nx,pos:0,sec:'',wrong:false};renderCore();window.scrollTo(0,TABY[nx]||0);spawnFx();var nu=app.firstChild;if(nu)nu.classList.add('atl-tin-'+d);setTimeout(function(){app.classList.remove('atl-vt')},300)},90)}
 var ARM=0;try{window.addEventListener('popstate',function(){ARM=0;if(CUR&&NAV.length>=2)goBack('home')})}catch(e){}
@@ -597,7 +598,7 @@ function xferView(){
 function subjOfSet(k){var r=null;SUBJECTS.forEach(function(x){if(x.quizzes.indexOf(k)>=0)r=x});return r}
 var MQ=null;
 function mqStart(sid){var ml=srMistSort(mistakesList()).filter(function(m){if(!sid)return true;var x=subjOfSet(m.set.id);return x&&x.id===sid});if(!ml.length)return;MQ={l:ml.map(function(m){return {s:m.set.id,n:m.it.n}}),i:0,p:'',ok:0,bad:0,sid:sid||''};go('mqz')}
-function mqView(){var w=h('div',{class:'atl-wrap',style:'padding-top:14px'}),back=function(){MQ=null;goBack('mist:prac')};
+function mqView(){var w=h('div',{class:'atl-wrap',style:'padding-top:14px'}),back=function(){MQ=null;exitMist()};
  if(!MQ||!MQ.l.length){var d0=h('div');d0.appendChild(top('اختبار أخطائي',null,back));return d0}
  if(MQ.i>=MQ.l.length){w.appendChild(h('div',{class:'atl-note ok'},['خلصت الاختبار: '+MQ.ok+' صح من '+MQ.l.length+(MQ.bad?'. اللي غلطت فيه لسه في أخطائي.':'. كل أخطائك اتصححت!')]));if(MQ.res&&MQ.res.length){w.appendChild(h('h2',{},['اللي جاوبته']));MQ.res.forEach(function(r){var st=SETS[r.s],it2=st&&st.items.filter(function(x){return x.n===r.n})[0];if(!it2)return;w.appendChild(h('div',{class:'atl-card'},[h('span',{'aria-hidden':'true'},[r.ok?'✅':'❌']),h('span',{style:'flex:1'},[h('div',{class:'t'},['Q'+r.n+' · '+exc(it2.q)]),h('div',{class:'s'},[r.ok?'اتصحح وبقى من إجاباتك الصح':'لسه غلط، والصح '+it2.a])])]))})}w.appendChild(h('button',{type:'button',class:'atl-btn p',style:'width:100%',onclick:back},['رجوع لأخطائي']));var d1=h('div');d1.appendChild(top('اختبار أخطائي',MQ.l.length+' سؤال',back));d1.appendChild(w);return d1}
  var cur=MQ.l[MQ.i],set=SETS[cur.s],it=set.items.filter(function(x){return x.n===cur.n})[0],L2='ABCDE',pk=MQ.p;
