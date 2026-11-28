@@ -20,11 +20,12 @@ var SETS={
  physio:{id:'physio',title:'Practical Physiology: Hematology MCQs',items:D.physio,key:false},
  para:{id:'para',title:'Para slides MCQ',items:D.para,key:false,images:seq('pq',60)},
  patho:{id:'patho',title:'Patho Practical MCQ',items:D.patho,key:false,images:seq('pt_q',38)},
+ iron:{id:'iron',title:'اسئلة علمي البايو',items:(D.iron||[]),key:true},
  histo:{id:'histo',title:'Histology Practical MCQ',items:D.histo||[],key:true,images:(window.HQIMG||[]).map(F)}
 };
 (SETS.histo.items||[]).forEach(function(it){it.src='f'});
 ['physio','para','patho'].forEach(function(k){SETS[k].key=true;SETS[k].mixed=true;SETS[k].items.forEach(function(it){var a=(window.ANS&&ANS[k]&&ANS[k][it.n])||null;if(a){it.a=a[0];it.src=a[1].charAt(0);it.lo=a[1].length>1}})});
-['micro','atlas'].forEach(function(k){SETS[k].items.forEach(function(it){it.src='f'})});
+['micro','atlas','iron'].forEach(function(k){SETS[k].items.forEach(function(it){it.src='f'})});
 function srcTag(it){return null}
 function brandEl(){var k=[];if(window.LOGO)k.push(h('img',{src:window.LOGO,alt:'ATLAS 19',class:'atl-logo'}));k.push(h('b',{},['ATLAS 19']));return h('div',{class:'atl-brand'},k)}
 (function(){var st=document.createElement('style');st.textContent='.atl-brand{flex-direction:column;gap:8px}.atl-logo{width:116px;height:116px;border-radius:50%;background:#fff;border:3px solid #fff;box-shadow:0 0 0 2px #c9a46a,0 6px 18px rgba(0,0,0,.28);object-fit:cover}';document.head.appendChild(st);if(window.FAV){var l=document.querySelector('link[rel=icon]');if(!l){l=document.createElement('link');l.rel='icon';document.head.appendChild(l)}l.type='image/jpeg';l.href=window.FAV}})();
@@ -36,7 +37,7 @@ var SUBJECTS=[
  {id:'pharma',name:'Pharma',quizzes:['atlas'],pages:[]},
  {id:'histo',name:'Histo',quizzes:['histo'],pages:[{id:'ph',title:'Histo slides (blood film and more)',pages:seq('ph',15),note:'All histology slide images with their notes.'}]},
  {id:'anat',name:'Anatomy',quizzes:[],pages:[],soon:true},
- {id:'bio',name:'Biochem',quizzes:[],pages:[],soon:true}
+ {id:'bio',name:'Biochem',quizzes:['iron'],pages:[]}
 ];
 var app=document.getElementById('app');
 var store={};
@@ -465,6 +466,7 @@ function acctView(){
  fg.classList.add('atl-fgs');wrap.appendChild(fg);
  var d=h('div',{class:'atl-acct'});d.appendChild(acctBanner());d.appendChild(pageHead('حسابك'));d.appendChild(wrap);d.appendChild(tabs('acct'));return d}
 var NEWS=[
+ {d:'2026-11-28',t:'تم اضافة اسئلة البايو',v:'quiz:iron'},
  {d:'2026-11-27',t:'الاختبار العشوائي بقى أحسن: ألوان زرقاء، بيشتغل كويس على الآيباد والكمبيوتر، وزر إنهاء الاختبار بيتحول أخضر',v:'home'},
  {d:'2026-11-27',t:'الاختبار العشوائي أصبح شبه الامتحان، جرّبه الآن',v:'home'},
  {d:'2026-11-26',t:'تم إضافة 25 سؤال لمادة ميكرو في قسم العملي',v:'quiz:micro'},
